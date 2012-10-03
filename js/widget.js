@@ -12,7 +12,6 @@
                 widget = new LeafletDrawWidget(item, geojson),
                 submit_handler = widget.getSubmitHandler(dest);
 
-
             // Serialize data and set input value on submit.
             $(item).parents('form').bind('submit', submit_handler);
         });
@@ -177,10 +176,9 @@
 
         _latLngsToCoords: function (latlngs) {
             var coords = [],
-                coord,
-                i, len;
+                coord;
 
-            for (i = 0, len = latlngs.length; i < len; i++) {
+            for (var i = 0, len = latlngs.length; i < len; i++) {
                 coord = this._latLngToCoord(latlngs[i]);
                 coords.push(coord);
             }
