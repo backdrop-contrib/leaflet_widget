@@ -3,6 +3,26 @@
 A [Geofield] widget that provides a [Leaflet] map with the [Leaflet.draw] 
 plugin for adding features.
 
+## Features:
+
+Supports creation of simple geometries:
+
+- Point
+- LineString
+- Polygon
+
+And creation of complex geometries:
+
+- MultiPoint
+- MultiLineString
+- MultiPolygon
+
+Can be used with single-valued or multi-valued Geofields (cardinality).
+
+__Note: due to a side-effect of Geofield's GeoJSON storage, currently all 
+geometries of the same type will be grouped into their complex equivalent and 
+stored as a single field value.__
+
 ## Installation tips:
 
 - Currently Geofield Leaflet uses the [Leaflet] library provided by the 
