@@ -59,26 +59,25 @@ function geofield_leaflet_field_widget_form(&$form, &$form_state, $field, $insta
       $widget['#type'] = 'fieldset';
 
       $widget['geofield_leaflet'] = array('#markup' => $container);
-      $widget['geofield_leaflet_input'] = array(
-        '#type' => 'hidden',
-        '#attributes' => array(
-          'id' => "$id-input",
-        ),
-      );
 
       // Convert data to geojson for native handling client-side.
       $features = array();
-      foreach ($items as $item) {
-        if (isset($item['wkt'])) {
-          $features[] = geofield_leaflet_geojson_feature($item['wkt']);
-        }
+      if (isset($items[$delta]) && isset($items[$delta]['wkt'])) {
+        $features[] = geofield_leaflet_geojson_feature($items[$delta]['wkt']);
       }
+      $collection = geofield_leaflet_geojson_feature_collection($features);
+
+      $widget['wkt']['#default_value'] = drupal_json_encode($collection);
+      $widget['wkt']['#attributes']['id'] = "$id-input";
+      $widget['input_format']['#value'] = 'geojson';
 
       $widget['#attached']['js'][] = array(
         'type' => 'setting',
         'data' => array(
           'geofield_leaflet_widget_data' => array(
-            $id => geofield_leaflet_geojson_feature_collection($features),
+            $id => array(
+              $delta => $collection,
+            ),
           ),
         ),
       );
