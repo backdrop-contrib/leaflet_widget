@@ -48,7 +48,7 @@
             this.map.addControl(drawControl);
 
             // Adding layers.
-            this.map.addLayer(L.tileLayer('http://{s}.tiles.cantrusthosting.com/bing--hybrid/{z}/{x}/{y}.png'));
+            this.map.addLayer(L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'));
             this.unserialize(data).addTo(this.map);
 
             // Map event handlers.
