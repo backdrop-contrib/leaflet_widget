@@ -46,7 +46,7 @@ function geofield_leaflet_field_widget_settings_form($field, $instance) {
  * Implements hook_field_widget_form().
  */
 function geofield_leaflet_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
-  $widget = $element;
+  $widget = geofield_get_base_element($element, $items, $delta);
 
   switch ($instance['widget']['type']) {
     case 'geofield_leaflet_draw':
@@ -56,14 +56,16 @@ function geofield_leaflet_field_widget_form(&$form, &$form_state, $field, $insta
       $container = "<div id=\"$id\" class=\"$class\" style=\"$style\"></div>";
 
       $widget['#attached']['library'][] = array('geofield_leaflet', 'widget');
+      $widget['#element_validate'] = array('geofield_leaflet_draw_validate');
       $widget['#type'] = 'fieldset';
 
       $widget['geofield_leaflet'] = array('#markup' => $container);
 
-      // Convert data to geojson for native handling client-side.
       $features = array();
-      if (isset($items[$delta]) && isset($items[$delta]['wkt'])) {
-        $features[] = geofield_leaflet_geojson_feature($items[$delta]['wkt']);
+      foreach ($items as $item) {
+        if (isset($item['wkt'])) {
+          $features[] = geofield_leaflet_geojson_feature($item['wkt']);
+        }
       }
       $collection = geofield_leaflet_geojson_feature_collection($features);
 
@@ -75,9 +77,7 @@ function geofield_leaflet_field_widget_form(&$form, &$form_state, $field, $insta
         'type' => 'setting',
         'data' => array(
           'geofield_leaflet_widget_data' => array(
-            $id => array(
-              $delta => $collection,
-            ),
+            $id =>  $collection,
           ),
         ),
       );
@@ -86,6 +86,24 @@ function geofield_leaflet_field_widget_form(&$form, &$form_state, $field, $insta
   }
 
   return $widget;
+}
+
+function geofield_leaflet_draw_validate($element, &$form_state) {
+  $geophp = geophp_load();
+  if (!$geophp) return FALSE;
+
+  $geom = geoPHP::load($element['wkt']['#value'], 'json');
+  $type = $geom->geometryType();
+  $items = ($type === 'GeometryCollection') ? $geom->getComponents() : array($geom);
+
+  $results = array();
+  foreach ($items as $item) {
+    $result = array('wkt' => $item->out('wkt'));
+    geofield_compute_values($result, 'wkt');
+    $results[] = $result;
+  }
+
+  form_set_value($element, $results, $form_state);
 }
 
 /**

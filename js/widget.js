@@ -6,30 +6,33 @@
 
     function attach(context, settings) {
         $('.geofield-leaflet-widget').once().each(function(i, item) {
-            var i = 0, data = [],
-                id = $(item).attr('id'),
-                geojson = settings.geofield_leaflet_widget_data[id];
+            var id = $(item).attr('id'),
+                dest = $('#' + id + '-input'),
+                geojson = settings.geofield_leaflet_widget_data[id],
+                widget = new LeafletDrawWidget(item, geojson),
+                submit_handler = widget.getSubmitHandler(dest);
 
-            widget = new Widget(id, item, geojson);
+
+            // Serialize data and set input value on submit.
+            $(item).parents('form').bind('submit', submit_handler);
         });
     }
 
-    var Widget = L.Class.extend({
+    /**
+     * Maintains the individual state of a input map widget.
+     */
+    var LeafletDrawWidget = L.Class.extend({
 
-        initialize: function (id, item, data, options) {
-            this.id = id;
+        /**
+         * Initialize map & widget.
+         */
+        initialize: function (item, data, options) {
             this.vectors = [];
 
-            this.map = L.map(item),
-            this.map.addLayer(L.tileLayer('http://{s}.tiles.cantrusthosting.com/bing--hybrid/{z}/{x}/{y}.png'));
-            this.read(data);
+            // Init map.
+            this.map = L.map(item);
 
-            // Bind write()'s scope context.
-            this.write = $.proxy(this.write, this);
-
-            // Write on submit.
-            $(item).parents('form').bind('submit', this.write);
-
+            // Add controls.
             var options = {
                     color: '#F0F',
                     opacity: 0.9,
@@ -42,65 +45,108 @@
                     polygon: { shapeOptions: options },
                     circle: false,
                     rectangle: false
-                }),
-                drawnItems = L.layerGroup();
+                });
+            this.map.addControl(drawControl);
 
-            this.map.on('draw:poly-created', function (e) {
-                this.addVector(e.poly);
-                this.map.addLayer(e.poly);
-            }, this);
-            this.map.on('draw:marker-created', function (e) {
-                this.addVector(e.marker);
-                this.map.addLayer(e.marker);
-            }, this);
+            // Adding layers.
+            this.map.addLayer(L.tileLayer('http://{s}.tiles.cantrusthosting.com/bing--hybrid/{z}/{x}/{y}.png'));
+            this.unserialize(data).addTo(this.map);
+
+            // Map event handlers.
+
+            // Vector creation:
+            this.map.on('draw:poly-created draw:marker-created', this._onCreated, this);
 
             this.map.setView([49.26, -123.11], 10);
-            this.map.addControl(drawControl);
         },
 
-        read: function (data) {
-            var on_each_feature = function (featureData, layer) {
-                    this.addVector(layer);
-                },
-                layer = L.geoJson(data, {
-                    onEachFeature: $.proxy(on_each_feature, this)
-                });
-
-            this.map.addLayer(layer);
+        /**
+         * Add vector layers.
+         */
+        _addVector: function (feature) {
+            this.vectors.push(feature);
         },
 
-        write: function () {
-            var dest = '#' + this.id + '-input',
-                features = [],
-                i, len;
+        /**
+         * Handle features drawn by user.
+         */
+        _onCreated: function (e) {
+            var key = /(?!:)[a-z]+(?=-)/.exec(e.type)[0];
+            vector = e[key] || false;
 
-            for (i = 0, len = this.vectors.length; i < len; i++) {
-                features.push(this.vectorToFeature(this.vectors[i]));
+            if (vector) {
+                this._addVector(vector);
+                this.map.addLayer(vector);
+            }
+        },
+
+        /**
+         * Read GeoJSON features into widget vector layers.
+         */
+        unserialize: function (data) {
+            var on_each = function (feature, layer) { this._addVector(layer) },
+                options = {
+                    onEachFeature: $.proxy(on_each, this)
+                };
+            return L.geoJson(data, options);
+        },
+
+        /**
+         * Write widget vector layers to GeoJSON.
+         */
+        serialize: function () {
+            var geometry,
+                features = [];
+
+            for (var i = 0, len = this.vectors.length; i < len; i++) {
+                geometry = this.vectorToGeometry(this.vectors[i]);
+                features.push(this.feature(geometry));
             }
 
-            $(dest).val(JSON.stringify(this.featureCollection(features)));
+            return JSON.stringify(this.featureCollection(features));
         },
 
-        vectorToFeature: function (vector) {
+        getSubmitHandler: function ($dest) {
+            return $.proxy(function submit_handler() {
+                $dest.val(this.serialize());
+            }, this);
+        },
+
+        /**
+         * TODO: Break this up into individual 'toGeomtery' methods on each 
+         *       vector layer.
+         */
+        vectorToGeometry: function (vector) {
             var geometry = {};
 
             if (vector instanceof L.MultiPolygon) {
                 geometry.type = "MultiPolygon";
                 geometry.coordinates = [];
                 vector.eachLayer(function (layer) {
-                    geometry.coordinates.push([this._latLngsToCoords(layer.getLatLngs())]);
-                });
-            }
-            else if (vector instanceof L.Polygon) {
-                geometry.type = "Polygon";
-                geometry.coordinates = [this._latLngsToCoords(vector.getLatLngs())];
+                    geometry.coordinates.push(this.vectorToGeometry(layer).coordinates);
+                }, this);
             }
             else if (vector instanceof L.MultiPolyline) {
                 geometry.type = "MultiLineString";
                 geometry.coordinates = [];
                 vector.eachLayer(function (layer) {
-                    geometry.coordinates.push(this._latLngsToCoords(layer.getLatLngs()));
-                });
+                    geometry.coordinates.push(this.vectorToGeometry(layer).coordinates);
+                }, this);
+            }
+            else if (vector instanceof L.FeatureGroup) {
+                geometry.type = "MultiPoint";
+                geometry.coordinates = [];
+                vector.eachLayer(function (layer) {
+                    var obj = this.vectorToGeometry(layer);
+                    // We're assuming a FeatureGroup only contains Points
+                    // (currently no support for 'GeometryCollections').
+                    if (obj.type !== "Point") return;
+                    geometry.coordinates.push(obj.coordinates);
+                }, this);
+            }
+            else if (vector instanceof L.Polygon) {
+                geometry.type = "Polygon";
+                geometry.coordinates = [this._latLngsToCoords(vector.getLatLngs())];
             }
             else if (vector instanceof L.Polyline) {
                 geometry.type = "LineString";
@@ -111,7 +157,7 @@
                 geometry.coordinates = this._latLngToCoord(vector.getLatLng());
             }
 
-            return this.feature(geometry);
+            return geometry;
         },
 
         featureCollection: function (features) {
@@ -143,11 +189,7 @@
         },
 
         _latLngToCoord: function (latlng) {
-            return [latlng.lat, latlng.lng];
-        },
-
-        addVector: function (feature) {
-            this.vectors.push(feature);
+            return [latlng.lng, latlng.lat];
         }
     });
 }(jQuery));
