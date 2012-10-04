@@ -7,10 +7,10 @@
     function attach(context, settings) {
         $('.geofield-leaflet-widget').once().each(function(i, item) {
             var id = $(item).attr('id'),
-                dest = $('#' + id + '-input'),
-                geojson = settings.geofield_leaflet_widget_data[id],
-                widget = new LeafletDrawWidget(item, geojson),
-                submit_handler = widget.getSubmitHandler(dest);
+                options = settings.geofield_leaflet_widget[id].settings,
+                geojson = settings.geofield_leaflet_widget[id].geojson,
+                widget = new LeafletDrawWidget(item, geojson, options.map),
+                submit_handler = widget.getSubmitHandler($('#' + options.dest));
 
             // Serialize data and set input value on submit.
             $(item).parents('form').bind('submit', submit_handler);
@@ -32,23 +32,23 @@
             this.map = L.map(item);
 
             // Add controls.
-            var options = {
+            var shape_options = {
                     color: '#F0F',
                     opacity: 0.9,
                     fillColor: '#F0F',
                     fillOpacity: 0.2
                 },
-                drawControl = new L.Control.Draw({
+                draw_control = new L.Control.Draw({
                     position: 'topright',
-                    polyline: { shapeOptions: options },
-                    polygon: { shapeOptions: options },
+                    polyline: { shapeOptions: shape_options },
+                    polygon: { shapeOptions: shape_options },
                     circle: false,
                     rectangle: false
                 });
-            this.map.addControl(drawControl);
+            this.map.addControl(draw_control);
 
             // Adding layers.
-            this.map.addLayer(L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'));
+            this.map.addLayer(L.tileLayer(options.baseUrl));
             this.unserialize(data).addTo(this.map);
 
             // Map event handlers.

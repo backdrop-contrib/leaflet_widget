@@ -11,7 +11,7 @@ function geofield_leaflet_field_widget_info() {
     'description' => 'Provides a map powered by Leaflet and Leaflet.draw.',
     'field types' => array('geofield'),
     'settings' => array(
-      'map' => '',
+      'map' => 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
     ),
     'behaviors' => array(
       'multiple values' => FIELD_BEHAVIOR_CUSTOM,
@@ -33,8 +33,11 @@ function geofield_leaflet_field_widget_settings_form($field, $instance) {
       $form['map'] = array(
         '#type' => 'select',
         '#title' => 'Leaflet.draw widget settings',
-        '#default_value' => '', // TODO: Check $field & $instance for the 'settings' value.
-        '#options' => array(), // TODO: Look for leaflet maps.
+        '#default_value' => $instance['widget']['settings']['map'],
+        // TODO: Expose this for extension.
+        '#options' => array(
+          'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png' => 'OSM',
+        ),
       );
       break;
   }
@@ -47,37 +50,49 @@ function geofield_leaflet_field_widget_settings_form($field, $instance) {
  */
 function geofield_leaflet_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
   $widget = geofield_get_base_element($element, $items, $delta);
+  $widget['#type'] = 'fieldset';
 
   switch ($instance['widget']['type']) {
     case 'geofield_leaflet_draw':
       $id = 'geofield-leaflet_' . str_replace('_', '-', $instance['field_name']);
       $class = 'geofield-leaflet-widget';
       $style = 'height: 300px;';
+
+      $settings = array(
+        'dest' => "$id-input",
+        'map' => array(
+          'baseUrl' => $instance['widget']['settings']['map'],
+        ),
+      );
+
+      // Provide container markup for map form element.
       $container = "<div id=\"$id\" class=\"$class\" style=\"$style\"></div>";
-
-      $widget['#attached']['library'][] = array('geofield_leaflet', 'widget');
-      $widget['#element_validate'] = array('geofield_leaflet_draw_validate');
-      $widget['#type'] = 'fieldset';
-
       $widget['geofield_leaflet'] = array('#markup' => $container);
 
-      $features = array();
-      foreach ($items as $item) {
-        if (isset($item['wkt'])) {
-          $features[] = geofield_leaflet_geojson_feature($item['wkt']);
-        }
-      }
-      $collection = geofield_leaflet_geojson_feature_collection($features);
+      // Overriding Geofield's validation handler.
+      $widget['#element_validate'] = array('geofield_leaflet_draw_validate');
 
-      $widget['wkt']['#default_value'] = drupal_json_encode($collection);
-      $widget['wkt']['#attributes']['id'] = "$id-input";
+      // Tell Geofield to expect GeoJSON instead of WKT.
       $widget['input_format']['#value'] = 'geojson';
 
+      // Prepare existing field values to be rendered in widget.
+      $collection = geofield_widget_prepare_items($items);
+
+      // Set default value incase form is submitted without javascript enabled.
+      $widget['wkt']['#default_value'] = drupal_json_encode($collection);
+      $widget['wkt']['#attributes']['id'] = $settings['dest'];
+
+      // Include javascript.
+      $widget['#attached']['library'][] = array('geofield_leaflet', 'widget');
+      // Settings and geo-data are passed to the widget keyed by field id.
       $widget['#attached']['js'][] = array(
         'type' => 'setting',
         'data' => array(
-          'geofield_leaflet_widget_data' => array(
-            $id =>  $collection,
+          'geofield_leaflet_widget' => array(
+            $id =>  array(
+              'settings' => $settings,
+              'geojson' => $collection,
+            ),
           ),
         ),
       );
@@ -86,6 +101,16 @@ function geofield_leaflet_field_widget_form(&$form, &$form_state, $field, $insta
   }
 
   return $widget;
+}
+
+function geofield_widget_prepare_items($items) {
+  $features = array();
+  foreach ($items as $item) {
+    if (isset($item['wkt'])) {
+      $features[] = geofield_leaflet_geojson_feature($item['wkt']);
+    }
+  }
+  return geofield_leaflet_geojson_feature_collection($features);
 }
 
 function geofield_leaflet_draw_validate($element, &$form_state) {
