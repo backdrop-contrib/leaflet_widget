@@ -22,14 +22,21 @@
      */
     var LeafletDrawWidget = L.Class.extend({
 
+        options: {
+            defaultVectorStyle: {
+                color: '#0033ff',
+            },
+            selectedVectorStyle: {
+                color: '#F00',
+            }
+        },
+
         /**
          * Initialize map & widget.
          */
         initialize: function (item, data, options) {
-            this.vectors = [];
-
             // Init map.
-            this.map = L.map(item);
+            this.map = L.map(item, { select: true });
 
             // Add controls.
             var shape_options = {
@@ -49,12 +56,33 @@
 
             // Adding layers.
             this.map.addLayer(L.tileLayer(options.baseUrl));
-            this.unserialize(data).addTo(this.map);
+            this.vectors = L.layerGroup().addTo(this.map);
+            this.selected = L.featureGroup();
+            this.unserialize(data);//.addTo(this.map);
 
             // Map event handlers.
 
             // Vector creation:
             this.map.on('draw:poly-created draw:marker-created', this._onCreated, this);
+
+            this.map.on({
+                selected: function (e) {
+                    var layer = e.layer;
+                    if (layer instanceof L.Path) {
+                        layer.setStyle(this.options.selectedVectorStyle);
+                    }
+                },
+                deselected: function (e) {
+                    var layer = e.layer;
+                    if (layer instanceof L.Path) {
+                        layer.setStyle(this.options.defaultVectorStyle);
+                    }
+                },
+                layerremove: function (e) {
+                    var layer = e.layer;
+                    this.vectors.removeLayer(layer);
+                }
+            }, this);
 
             this.map.setView([49.26, -123.11], 10);
         },
@@ -63,7 +91,7 @@
          * Add vector layers.
          */
         _addVector: function (feature) {
-            this.vectors.push(feature);
+            this.vectors.addLayer(feature);
         },
 
         /**
@@ -75,7 +103,6 @@
 
             if (vector) {
                 this._addVector(vector);
-                this.map.addLayer(vector);
             }
         },
 
@@ -97,10 +124,10 @@
             var geometry,
                 features = [];
 
-            for (var i = 0, len = this.vectors.length; i < len; i++) {
-                geometry = this.vectorToGeometry(this.vectors[i]);
+            this.vectors.eachLayer(function (layer) {
+                geometry = this.vectorToGeometry(layer);
                 features.push(this.feature(geometry));
-            }
+            }, this);
 
             return JSON.stringify(this.featureCollection(features));
         },
