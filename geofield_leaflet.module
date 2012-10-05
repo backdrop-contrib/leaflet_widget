@@ -154,6 +154,20 @@ function geofield_leaflet_library() {
     ),
   );
 
+  $libraries['select'] = array(
+    'title' => 'Leaflet select',
+    'version' => '1.x',
+    'js' => array(
+      "$path/js/select.js" => array(),
+    ),
+    'css' => array(
+      "$path/css/select.css" => array(),
+    ),
+    'dependencies' => array(
+      array('leaflet', 'leaflet'),
+    ),
+  );
+
   $libraries['widget'] = array(
     'title' => 'Geofield leaflet widget',
     'version' => '7.x-1.x',
@@ -162,6 +176,7 @@ function geofield_leaflet_library() {
     ),
     'dependencies' => array(
       array('geofield_leaflet', 'Leaflet.draw'),
+      array('geofield_leaflet', 'select'),
     ),
   );
 
