@@ -58,30 +58,14 @@
             this.map.addLayer(L.tileLayer(options.baseUrl));
             this.vectors = L.layerGroup().addTo(this.map);
             this.selected = L.featureGroup();
-            this.unserialize(data);//.addTo(this.map);
+            this.unserialize(data);
 
             // Map event handlers.
-
-            // Vector creation:
-            this.map.on('draw:poly-created draw:marker-created', this._onCreated, this);
-
             this.map.on({
-                selected: function (e) {
-                    var layer = e.layer;
-                    if (layer instanceof L.Path) {
-                        layer.setStyle(this.options.selectedVectorStyle);
-                    }
-                },
-                deselected: function (e) {
-                    var layer = e.layer;
-                    if (layer instanceof L.Path) {
-                        layer.setStyle(this.options.defaultVectorStyle);
-                    }
-                },
-                layerremove: function (e) {
-                    var layer = e.layer;
-                    this.vectors.removeLayer(layer);
-                }
+                'draw:poly-created draw:marker-created': this._onCreated,
+                selected: this._onSelected,
+                deselected: this._onDeselected,
+                layerremove: this._unbind
             }, this);
 
             this.map.setView([49.26, -123.11], 10);
@@ -104,6 +88,25 @@
             if (vector) {
                 this._addVector(vector);
             }
+        },
+
+        _onSelected: function (e) {
+            var layer = e.layer;
+            if (layer instanceof L.Path) {
+                layer.setStyle(this.options.selectedVectorStyle);
+            }
+        },
+
+        _onDeselected: function (e) {
+            var layer = e.layer;
+            if (layer instanceof L.Path) {
+                layer.setStyle(this.options.defaultVectorStyle);
+            }
+        },
+
+        _unbind: function (e) {
+            var layer = e.layer;
+            this.vectors.removeLayer(layer);
         },
 
         /**
