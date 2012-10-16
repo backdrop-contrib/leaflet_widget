@@ -1,7 +1,8 @@
 # Geofield Leaflet
 
-A [Geofield] widget that provides a [Leaflet] map with the [Leaflet.draw] 
-plugin for adding features.
+A [Geofield] widget that provides a [Leaflet] map widget with the
+[Leaflet.widget] plugin for adding features. [Leaflet.widget] uses the
+[Leaflet.draw] vector creation tools.
 
 ## Features:
 
@@ -26,10 +27,10 @@ stored as a single field value.__
 ## Installation tips:
 
 - Currently Geofield Leaflet uses the [Leaflet] library provided by the 
-[Leaflet Drupal] module.  
+[Leaflet Drupal] module.
 - This module requires the latest dev release of [GeoPHP] as there are issues 
 with parsing GeoJSON in the latest stable release.
-- Make sure you have the most recent version of the [Leaflet.draw] plugin in 
+- Make sure you have the most recent version of the [Leaflet.widget] plugin in 
 your 'libraries' directory (see [Libraries API].
 
 [Leaflet]: http://leaflet.cloudmade.com
@@ -37,4 +38,5 @@ your 'libraries' directory (see [Libraries API].
 [Leaflet Drupal]: http://drupal.org/project/leaflet
 [Geofield]: http://drupal.org/project/geofield
 [Leaflet.draw]: https://github.com/jacobtoye/Leaflet.draw
+[Leaflet.widget]: https://thegreat.github.com/Leaflet.widget
 [Libraries API]: http://drupal.org/project/libraries
