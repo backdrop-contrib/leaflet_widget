@@ -6,12 +6,19 @@
 function geofield_leaflet_field_widget_info() {
   $widgets = array();
 
-  $widgets['geofield_leaflet_draw'] = array(
-    'label' => 'Leaflet.draw',
-    'description' => 'Provides a map powered by Leaflet and Leaflet.draw.',
+  $widgets['geofield_leaflet_widget'] = array(
+    'label' => 'Leaflet.widget',
+    'description' => 'Provides a map powered by Leaflet and Leaflet.widget.',
     'field types' => array('geofield'),
     'settings' => array(
-      'map' => 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+      'map' => array(
+        'base_url' => 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+        'center' => array(
+          'lat' => 49.26,
+          'lng' => -123.11
+        ),
+        'zoom' => 10,
+      ),
     ),
     'behaviors' => array(
       'multiple values' => FIELD_BEHAVIOR_CUSTOM,
@@ -27,17 +34,42 @@ function geofield_leaflet_field_widget_info() {
  */
 function geofield_leaflet_field_widget_settings_form($field, $instance) {
   $form = array();
+  $settings = $instance['widget']['settings'];
+  error_log(print_r($settings, 1), 0);
 
   switch ($instance['widget']['type']) {
-    case 'geofield_leaflet_draw':
+    case 'geofield_leaflet_widget':
       $form['map'] = array(
+        '#type' => 'fieldset',
+        '#title' => 'Default map settings',
+      );
+      $form['map']['base_url'] = array(
         '#type' => 'select',
         '#title' => 'Leaflet.draw widget settings',
-        '#default_value' => $instance['widget']['settings']['map'],
+        '#default_value' => $settings['map']['base_url'],
         // TODO: Expose this for extension.
         '#options' => array(
           'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png' => 'OSM',
         ),
+      );
+      $form['map']['center'] = array('#type' => 'fieldset', '#title' => 'Default map center');
+      $form['map']['center']['lat'] = array(
+        '#type' => 'textfield', // 'hidden',
+        '#title' => 'Latitude',
+        '#default_value' => $settings['map']['center']['lat'],
+        '#required' => TRUE,
+      );
+      $form['map']['center']['lng'] = array(
+        '#type' => 'textfield', // 'hidden',
+        '#title' => 'Longtitude',
+        '#default_value' => $settings['map']['center']['lng'],
+        '#required' => TRUE,
+      );
+      $form['map']['zoom'] = array(
+        '#type' => 'textfield', // 'hidden',
+        '#title' => 'Default zoom level',
+        '#default_value' => $settings['map']['zoom'],
+        '#required' => TRUE,
       );
       break;
   }
@@ -49,36 +81,31 @@ function geofield_leaflet_field_widget_settings_form($field, $instance) {
  * Implements hook_field_widget_form().
  */
 function geofield_leaflet_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
+  $settings = $instance['widget']['settings'];
+
   $widget = geofield_get_base_element($element, $items, $delta);
   $widget['#type'] = 'fieldset';
 
   switch ($instance['widget']['type']) {
-    case 'geofield_leaflet_draw':
+    case 'geofield_leaflet_widget':
       $id = 'geofield-leaflet_' . str_replace('_', '-', $instance['field_name']);
       $class = 'geofield-leaflet-widget';
       $style = 'height: 300px;';
 
-      $settings = array(
-        'dest' => "$id-input",
-        'map' => array(
-          'center' => array(49.26, -123,11),
-          'zoom' => 10,
-          'baseUrl' => $instance['widget']['settings']['map'],
-        ),
-      );
+      $settings['dest'] = "$id-input";
 
       // Provide container markup for map form element.
       $container = "<div id=\"$id\" class=\"$class\" style=\"$style\"></div>";
       $widget['geofield_leaflet'] = array('#markup' => $container);
 
       // Overriding Geofield's validation handler.
-      $widget['#element_validate'] = array('geofield_leaflet_draw_validate');
+      $widget['#element_validate'] = array('geofield_leaflet_widget_validate');
 
       // Tell Geofield to expect GeoJSON instead of WKT.
       $widget['input_format']['#value'] = 'geojson';
 
       // Prepare existing field values to be rendered in widget.
-      $collection = geofield_widget_prepare_items($items);
+      $collection = geofield_leaflet_widget_prepare_items($items);
 
       // Set default value incase form is submitted without javascript enabled.
       $widget['wkt']['#default_value'] = drupal_json_encode($collection);
@@ -105,7 +132,7 @@ function geofield_leaflet_field_widget_form(&$form, &$form_state, $field, $insta
   return $widget;
 }
 
-function geofield_widget_prepare_items($items) {
+function geofield_leaflet_widget_prepare_items($items) {
   $features = array();
   foreach ($items as $item) {
     if (isset($item['wkt'])) {
@@ -115,7 +142,7 @@ function geofield_widget_prepare_items($items) {
   return geofield_leaflet_geojson_feature_collection($features);
 }
 
-function geofield_leaflet_draw_validate($element, &$form_state) {
+function geofield_leaflet_widget_validate($element, &$form_state) {
   $geophp = geophp_load();
   if (!$geophp) return FALSE;
 

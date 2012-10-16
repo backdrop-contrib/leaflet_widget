@@ -12,7 +12,7 @@
             var map = L.map(id, {
                     center: options.map.center,
                     zoom: options.map.zoom,
-                    layers: [L.tileLayer(options.map.baseUrl)],
+                    layers: [L.tileLayer(options.map.base_url)],
                     widget: { attach: options.dest },
                     select: true
                 });
