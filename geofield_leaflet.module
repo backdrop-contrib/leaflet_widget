@@ -61,6 +61,8 @@ function geofield_leaflet_field_widget_form(&$form, &$form_state, $field, $insta
       $settings = array(
         'dest' => "$id-input",
         'map' => array(
+          'center' => array(49.26, -123,11),
+          'zoom' => 10,
           'baseUrl' => $instance['widget']['settings']['map'],
         ),
       );
@@ -136,47 +138,46 @@ function geofield_leaflet_draw_validate($element, &$form_state) {
  */
 function geofield_leaflet_library() {
   $path = drupal_get_path('module', 'geofield_leaflet');
-  $leaflet_draw_path = libraries_get_path('Leaflet.draw');
+  $leaflet_widget_path = libraries_get_path('Leaflet.widget');
 
   $libraries = array();
+
+  $libraries['widget'] = array(
+    'title' => 'Widget behavior',
+    'version' => '1.x',
+    'js' => array(
+      "$path/js/widget.js" => array(),
+    ),
+    'dependencies' => array(
+      array('geofield_leaflet', 'Leaflet.widget'),
+    ),
+  );
+
+  $libraries['Leaflet.widget'] = array(
+    'title' => 'Leaflet.widget',
+    'version' => '1.x',
+    'css' => array(
+      "$leaflet_widget_path/dist/leaflet.widget.min.css" => array(),
+    ),
+    'js' => array(
+      "$leaflet_widget_path/dist/leaflet.widget.js" => array(),
+    ),
+    'dependencies' => array(
+      array('geofield_leaflet', 'Leaflet.draw'),
+    ),
+  );
 
   $libraries['Leaflet.draw'] = array(
     'title' => 'Leaflet.draw',
     'version' => '1.x',
     'css' => array(
-      "$leaflet_draw_path/dist/leaflet.draw.css" => array(),
+      "$leaflet_widget_path/lib/Leaflet.draw/leaflet.draw.css" => array(),
     ),
     'js' => array(
-      "$leaflet_draw_path/dist/leaflet.draw-src.js" => array(),
+      "$leaflet_widget_path/lib/Leaflet.draw/leaflet.draw-src.js" => array(),
     ),
     'dependencies' => array(
       array('leaflet', 'leaflet'), // TODO: Make this configurable.
-    ),
-  );
-
-  $libraries['select'] = array(
-    'title' => 'Leaflet select',
-    'version' => '1.x',
-    'js' => array(
-      "$path/js/select.js" => array(),
-    ),
-    'css' => array(
-      "$path/css/select.css" => array(),
-    ),
-    'dependencies' => array(
-      array('leaflet', 'leaflet'),
-    ),
-  );
-
-  $libraries['widget'] = array(
-    'title' => 'Geofield leaflet widget',
-    'version' => '7.x-1.x',
-    'js' => array(
-      "$path/js/widget.js" => array(),
-    ),
-    'dependencies' => array(
-      array('geofield_leaflet', 'Leaflet.draw'),
-      array('geofield_leaflet', 'select'),
     ),
   );
 
