@@ -184,10 +184,10 @@ function geofield_leaflet_library() {
     'title' => 'Leaflet.widget',
     'version' => '1.x',
     'css' => array(
-      "$leaflet_widget_path/dist/leaflet.widget.min.css" => array(),
+      "$leaflet_widget_path/dist/Leaflet.widget.min.css" => array(),
     ),
     'js' => array(
-      "$leaflet_widget_path/dist/leaflet.widget.js" => array(),
+      "$leaflet_widget_path/dist/Leaflet.widget.js" => array(),
     ),
     'dependencies' => array(
       array('geofield_leaflet', 'Leaflet.draw'),
