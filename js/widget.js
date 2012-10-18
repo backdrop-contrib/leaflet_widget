@@ -7,11 +7,10 @@
     function attach(context, settings) {
         $('.geofield-leaflet-widget').once().each(function(i, item) {
             var id = $(item).attr('id'),
-                options = settings.geofield_leaflet_widget[id].settings;
+                options = settings.geofield_leaflet_widget[id];
 
             L.Util.extend(options.map, {
                 layers: [L.tileLayer(options.map.base_url)],
-                widget: { attach: options.dest },
             });
 
             var map = L.map(id, options.map);

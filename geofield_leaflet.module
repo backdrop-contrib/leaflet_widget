@@ -17,6 +17,7 @@ function geofield_leaflet_field_widget_info() {
           'lat' => 49.26,
           'lng' => -123.11
         ),
+        'auto_center' => TRUE,
         'zoom' => 10,
       ),
     ),
@@ -35,6 +36,7 @@ function geofield_leaflet_field_widget_info() {
 function geofield_leaflet_field_widget_settings_form($field, $instance) {
   $form = array();
   $settings = $instance['widget']['settings'];
+
   error_log(print_r($settings, 1), 0);
 
   switch ($instance['widget']['type']) {
@@ -52,7 +54,7 @@ function geofield_leaflet_field_widget_settings_form($field, $instance) {
           'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png' => 'OSM',
         ),
       );
-      $form['map']['center'] = array('#type' => 'fieldset', '#title' => 'Default map center');
+      $form['map']['center'] = array('#type' => 'fieldset', '#collapsed' => TRUE, '#collapsible' => TRUE, '#title' => 'Default map center');
       $form['map']['center']['lat'] = array(
         '#type' => 'textfield', // 'hidden',
         '#title' => 'Latitude',
@@ -64,6 +66,12 @@ function geofield_leaflet_field_widget_settings_form($field, $instance) {
         '#title' => 'Longtitude',
         '#default_value' => $settings['map']['center']['lng'],
         '#required' => TRUE,
+      );
+      $form['map']['auto_center'] = array(
+        '#type' => 'checkbox',
+        '#title' => 'Automatically center map on existing features',
+        '#description' => "This option overrides the widget's default center.",
+        '#default_value' => $settings['map']['auto_center'],
       );
       $form['map']['zoom'] = array(
         '#type' => 'textfield', // 'hidden',
@@ -92,7 +100,16 @@ function geofield_leaflet_field_widget_form(&$form, &$form_state, $field, $insta
       $class = 'geofield-leaflet-widget';
       $style = 'height: 300px;';
 
-      $settings['dest'] = "$id-input";
+
+      $settings['map']['widget'] = array();
+      $settings['map']['widget']['attach'] = "$id-input";
+      $settings['map']['widget']['multiple'] = FALSE;
+      $settings['map']['widget']['autoCenter'] = $settings['map']['auto_center'];
+      if ($field['cardinality'] != 1) {
+        $settings['map']['widget']['multiple'] = TRUE;
+        // Leaflet.widget treats multiple == true && !cardinality as 'unlimited'.
+        $settings['map']['widget']['cardinality'] = $field['cardinality'] > 0 ? $field['cardinality'] : 0;
+      }
 
       // Provide container markup for map form element.
       $container = "<div id=\"$id\" class=\"$class\" style=\"$style\"></div>";
@@ -109,21 +126,14 @@ function geofield_leaflet_field_widget_form(&$form, &$form_state, $field, $insta
 
       // Set default value incase form is submitted without javascript enabled.
       $widget['wkt']['#default_value'] = drupal_json_encode($collection);
-      $widget['wkt']['#attributes']['id'] = $settings['dest'];
+      $widget['wkt']['#attributes']['id'] = $settings['map']['widget']['attach'];
 
       // Include javascript.
       $widget['#attached']['library'][] = array('geofield_leaflet', 'widget');
       // Settings and geo-data are passed to the widget keyed by field id.
       $widget['#attached']['js'][] = array(
         'type' => 'setting',
-        'data' => array(
-          'geofield_leaflet_widget' => array(
-            $id =>  array(
-              'settings' => $settings,
-              'geojson' => $collection,
-            ),
-          ),
-        ),
+        'data' => array('geofield_leaflet_widget' => array($id => $settings)),
       );
 
       break;
