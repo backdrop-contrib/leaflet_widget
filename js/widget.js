@@ -1,5 +1,7 @@
 (function ($) {
 
+    Drupal.geofield_leaflet = Drupal.geofield_leaflet || {};
+
     Drupal.behaviors.geofield_widget = {
         attach: attach
     };
@@ -18,6 +20,8 @@
 
             // Serialize data and set input value on submit.
             $(item).parents('form').bind('submit', $.proxy(map.widget.write, map.widget));
+
+            Drupal.geofield_leaflet[id] = map;
         });
     }
 
