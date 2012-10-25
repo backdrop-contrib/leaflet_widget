@@ -6,13 +6,16 @@
 function geofield_leaflet_field_widget_info() {
   $widgets = array();
 
+  $base_layers = geofield_leaflet_base_layers();
+  $urls = array_keys($base_layers);
+
   $widgets['geofield_leaflet_widget'] = array(
     'label' => 'Leaflet.widget',
     'description' => 'Provides a map powered by Leaflet and Leaflet.widget.',
     'field types' => array('geofield'),
     'settings' => array(
       'map' => array(
-        'base_url' => 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+        'base_url' => array_shift($urls),
         'center' => array(
           'lat' => 49.26,
           'lng' => -123.11
@@ -37,8 +40,6 @@ function geofield_leaflet_field_widget_settings_form($field, $instance) {
   $form = array();
   $settings = $instance['widget']['settings'];
 
-  error_log(print_r($settings, 1), 0);
-
   switch ($instance['widget']['type']) {
     case 'geofield_leaflet_widget':
       $form['map'] = array(
@@ -50,9 +51,7 @@ function geofield_leaflet_field_widget_settings_form($field, $instance) {
         '#title' => 'Leaflet.draw widget settings',
         '#default_value' => $settings['map']['base_url'],
         // TODO: Expose this for extension.
-        '#options' => array(
-          'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png' => 'OSM',
-        ),
+        '#options' => geofield_leaflet_base_layers(),
       );
       $form['map']['center'] = array('#type' => 'fieldset', '#collapsed' => TRUE, '#collapsible' => TRUE, '#title' => 'Default map center');
       $form['map']['center']['lat'] = array(
@@ -242,4 +241,27 @@ function geofield_leaflet_geojson_feature($wkt, $properties = array()) {
     'geometry' => json_decode($geometry->out('json')),
     'properties' => $properties,
   );
+}
+
+/**
+ * Implements geofield_leaflet_base_layers().
+ */
+function geofield_leaflet_geofield_leaflet_base_layers() {
+  return array(
+    'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png' => 'OSM Mapnik',
+  );
+}
+
+function geofield_leaflet_base_layers() {
+  $options = array();
+
+  if (module_exists('leaflet')) {
+    foreach (leaflet_map_get_info() as $id => $map) {
+      foreach ($map['layers'] as $layer_id => $layer) {
+        $options[$layer['urlTemplate']] = "$id - $layer_id";
+      }
+    }
+  }
+
+  return array_merge($options, module_invoke_all('geofield_leaflet_base_layers'));
 }
