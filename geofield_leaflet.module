@@ -17,8 +17,8 @@ function geofield_leaflet_field_widget_info() {
       'map' => array(
         'base_url' => array_shift($urls),
         'center' => array(
-          'lat' => 49.26,
-          'lng' => -123.11
+          'lat' => 0.0,
+          'lng' => 0.0
         ),
         'auto_center' => TRUE,
         'zoom' => 10,
@@ -50,7 +50,6 @@ function geofield_leaflet_field_widget_settings_form($field, $instance) {
         '#type' => 'select',
         '#title' => 'Leaflet.draw widget settings',
         '#default_value' => $settings['map']['base_url'],
-        // TODO: Expose this for extension.
         '#options' => geofield_leaflet_base_layers(),
       );
       $form['map']['center'] = array('#type' => 'fieldset', '#collapsed' => TRUE, '#collapsible' => TRUE, '#title' => 'Default map center');
@@ -155,18 +154,27 @@ function geofield_leaflet_widget_validate($element, &$form_state) {
   $geophp = geophp_load();
   if (!$geophp) return FALSE;
 
-  $geom = geoPHP::load($element['wkt']['#value'], 'json');
-  $type = $geom->geometryType();
-  $items = ($type === 'GeometryCollection') ? $geom->getComponents() : array($geom);
+  $geojson = json_decode($element['wkt']['#value']);
 
   $results = array();
-  foreach ($items as $item) {
-    $result = array('wkt' => $item->out('wkt'));
-    geofield_compute_values($result, 'wkt');
-    $results[] = $result;
+  if ($geojson->type === 'FeatureCollection') {
+    foreach ($geojson->features as $feature) {
+      $results[] = array_merge($results, geofield_leaflet_process_geojson($feature));
+    }
+  }
+  else {
+    $results = array(geofield_leaflet_process_geojson($geojson));
   }
 
   form_set_value($element, $results, $form_state);
+}
+
+function geofield_leaflet_process_geojson($geojson) {
+  $geom = geoPHP::load($geojson, 'json');
+  $type = $geom->geometryType();
+  $result = array('wkt' => $geom->out('wkt'));
+  geofield_compute_values($result, 'wkt');
+  return $result;
 }
 
 /**
