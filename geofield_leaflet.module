@@ -182,7 +182,7 @@ function geofield_leaflet_process_geojson($geojson) {
  */
 function geofield_leaflet_library() {
   $path = drupal_get_path('module', 'geofield_leaflet');
-  $leaflet_widget_path = libraries_get_path('Leaflet.widget');
+  $leaflet_widget = libraries_get_path('Leaflet.widget');
 
   $libraries = array();
 
@@ -201,10 +201,10 @@ function geofield_leaflet_library() {
     'title' => 'Leaflet.widget',
     'version' => '1.x',
     'css' => array(
-      "$leaflet_widget_path/dist/Leaflet.widget.min.css" => array(),
+      "$leaflet_widget/dist/Leaflet.widget.min.css" => array(),
     ),
     'js' => array(
-      "$leaflet_widget_path/dist/Leaflet.widget.js" => array(),
+      "$leaflet_widget/dist/Leaflet.widget.js" => array(),
     ),
     'dependencies' => array(
       array('geofield_leaflet', 'Leaflet.draw'),
@@ -215,13 +215,29 @@ function geofield_leaflet_library() {
     'title' => 'Leaflet.draw',
     'version' => '1.x',
     'css' => array(
-      "$leaflet_widget_path/lib/Leaflet.draw/leaflet.draw.css" => array(),
+      "$leaflet_widget/lib/Leaflet.draw/leaflet.draw.css" => array(),
     ),
     'js' => array(
-      "$leaflet_widget_path/lib/Leaflet.draw/leaflet.draw-src.js" => array(),
+      "$leaflet_widget/lib/Leaflet.draw/leaflet.draw-src.js" => array(),
     ),
     'dependencies' => array(
-      array('leaflet', 'leaflet'), // TODO: Make this configurable.
+      array('geofield_leaflet', 'Leaflet'),
+    ),
+  );
+
+  // If available, use the same Leaflet as Leaflet module. Otherwise use the
+  // one bundled with Leaflet.widget.
+  $leaflet = libraries_get_path('leaflet');
+  $leaflet = !empty($leaflet) ? "$leaflet/dist/" : "$leaflet_widget/lib/Leaflet/";
+  $libraries['Leaflet'] = array(
+    'title' => 'Leaflet (Geofield widget)',
+    'version' => '0.4.5',
+    'css' => array(
+      "$leaflet/leaflet.css" => array(),
+      "$leaflet/leaflet.ie.css" => array('browsers' => array('IE' => 'lte IE 8')),
+    ),
+    'js' => array(
+      "$leaflet/leaflet-src.js" => array(),
     ),
   );
 
