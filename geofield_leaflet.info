@@ -1,5 +1,0 @@
-name = Leaflet Draw
-description = "Leaflet.draw widget for Geofield."
-core = 7.x
-dependencies[] = geofield
-dependencies[] = libraries

@@ -3,13 +3,13 @@
 /**
  * Implements hook_field_widget_info().
  */
-function geofield_leaflet_field_widget_info() {
+function leaflet_widget_field_widget_info() {
   $widgets = array();
 
-  $base_layers = geofield_leaflet_base_layers();
+  $base_layers = leaflet_widget_base_layers();
   $urls = array_keys($base_layers);
 
-  $widgets['geofield_leaflet_widget'] = array(
+  $widgets['leaflet_widget_widget'] = array(
     'label' => 'Leaflet.widget',
     'description' => 'Provides a map powered by Leaflet and Leaflet.widget.',
     'field types' => array('geofield'),
@@ -36,12 +36,12 @@ function geofield_leaflet_field_widget_info() {
 /**
  * Implements hook_field_widget_settings_form().
  */
-function geofield_leaflet_field_widget_settings_form($field, $instance) {
+function leaflet_widget_field_widget_settings_form($field, $instance) {
   $form = array();
   $settings = $instance['widget']['settings'];
 
   switch ($instance['widget']['type']) {
-    case 'geofield_leaflet_widget':
+    case 'leaflet_widget_widget':
       $form['map'] = array(
         '#type' => 'fieldset',
         '#title' => 'Default map settings',
@@ -50,7 +50,7 @@ function geofield_leaflet_field_widget_settings_form($field, $instance) {
         '#type' => 'select',
         '#title' => 'Leaflet.draw widget settings',
         '#default_value' => $settings['map']['base_url'],
-        '#options' => geofield_leaflet_base_layers(),
+        '#options' => leaflet_widget_base_layers(),
       );
       $form['map']['center'] = array('#type' => 'fieldset', '#collapsed' => TRUE, '#collapsible' => TRUE, '#title' => 'Default map center');
       $form['map']['center']['lat'] = array(
@@ -86,18 +86,17 @@ function geofield_leaflet_field_widget_settings_form($field, $instance) {
 /**
  * Implements hook_field_widget_form().
  */
-function geofield_leaflet_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
+function leaflet_widget_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
   $settings = $instance['widget']['settings'];
 
   $widget = geofield_get_base_element($element, $items, $delta);
   $widget['#type'] = 'fieldset';
 
   switch ($instance['widget']['type']) {
-    case 'geofield_leaflet_widget':
-      $id = 'geofield-leaflet_' . str_replace('_', '-', $instance['field_name']);
-      $class = 'geofield-leaflet-widget';
+    case 'leaflet_widget_widget':
+      $id = 'leaflet-widget_' . str_replace('_', '-', $instance['field_name']);
+      $class = 'leaflet-widget';
       $style = 'height: 300px;';
-
 
       $settings['map']['widget'] = array();
       $settings['map']['widget']['attach'] = "$id-input";
@@ -111,27 +110,27 @@ function geofield_leaflet_field_widget_form(&$form, &$form_state, $field, $insta
 
       // Provide container markup for map form element.
       $container = "<div id=\"$id\" class=\"$class\" style=\"$style\"></div>";
-      $widget['geofield_leaflet'] = array('#markup' => $container);
+      $widget['leaflet_widget'] = array('#markup' => $container);
 
       // Overriding Geofield's validation handler.
-      $widget['#element_validate'] = array('geofield_leaflet_widget_validate');
+      $widget['#element_validate'] = array('leaflet_widget_widget_validate');
 
       // Tell Geofield to expect GeoJSON instead of WKT.
       $widget['input_format']['#value'] = 'geojson';
 
       // Prepare existing field values to be rendered in widget.
-      $collection = geofield_leaflet_widget_prepare_items($items);
+      $collection = leaflet_widget_widget_prepare_items($items);
 
       // Set default value incase form is submitted without javascript enabled.
       $widget['wkt']['#default_value'] = drupal_json_encode($collection);
       $widget['wkt']['#attributes']['id'] = $settings['map']['widget']['attach'];
 
       // Include javascript.
-      $widget['#attached']['library'][] = array('geofield_leaflet', 'widget');
+      $widget['#attached']['library'][] = array('leaflet_widget', 'widget');
       // Settings and geo-data are passed to the widget keyed by field id.
       $widget['#attached']['js'][] = array(
         'type' => 'setting',
-        'data' => array('geofield_leaflet_widget' => array($id => $settings)),
+        'data' => array('leaflet_widget_widget' => array($id => $settings)),
       );
 
       break;
@@ -140,17 +139,17 @@ function geofield_leaflet_field_widget_form(&$form, &$form_state, $field, $insta
   return $widget;
 }
 
-function geofield_leaflet_widget_prepare_items($items) {
+function leaflet_widget_widget_prepare_items($items) {
   $features = array();
   foreach ($items as $item) {
     if (isset($item['wkt'])) {
-      $features[] = geofield_leaflet_geojson_feature($item['wkt']);
+      $features[] = leaflet_widget_geojson_feature($item['wkt']);
     }
   }
-  return geofield_leaflet_geojson_feature_collection($features);
+  return leaflet_widget_geojson_feature_collection($features);
 }
 
-function geofield_leaflet_widget_validate($element, &$form_state) {
+function leaflet_widget_widget_validate($element, &$form_state) {
   $geophp = geophp_load();
   if (!$geophp) return FALSE;
 
@@ -159,17 +158,17 @@ function geofield_leaflet_widget_validate($element, &$form_state) {
   $results = array();
   if ($geojson->type === 'FeatureCollection') {
     foreach ($geojson->features as $feature) {
-      $results[] = array_merge($results, geofield_leaflet_process_geojson($feature));
+      $results[] = array_merge($results, leaflet_widget_process_geojson($feature));
     }
   }
   else {
-    $results = array(geofield_leaflet_process_geojson($geojson));
+    $results = array(leaflet_widget_process_geojson($geojson));
   }
 
   form_set_value($element, $results, $form_state);
 }
 
-function geofield_leaflet_process_geojson($geojson) {
+function leaflet_widget_process_geojson($geojson) {
   $geom = geoPHP::load($geojson, 'json');
   $type = $geom->geometryType();
   $result = array('wkt' => $geom->out('wkt'));
@@ -180,8 +179,8 @@ function geofield_leaflet_process_geojson($geojson) {
 /**
  * Implements hook_library().
  */
-function geofield_leaflet_library() {
-  $path = drupal_get_path('module', 'geofield_leaflet');
+function leaflet_widget_library() {
+  $path = drupal_get_path('module', 'leaflet_widget');
   $leaflet_widget = libraries_get_path('Leaflet.widget');
 
   $libraries = array();
@@ -193,7 +192,7 @@ function geofield_leaflet_library() {
       "$path/js/widget.js" => array(),
     ),
     'dependencies' => array(
-      array('geofield_leaflet', 'Leaflet.widget'),
+      array('leaflet_widget', 'Leaflet.widget'),
     ),
   );
 
@@ -207,7 +206,7 @@ function geofield_leaflet_library() {
       "$leaflet_widget/dist/Leaflet.widget.js" => array(),
     ),
     'dependencies' => array(
-      array('geofield_leaflet', 'Leaflet.draw'),
+      array('leaflet_widget', 'Leaflet.draw'),
     ),
   );
 
@@ -221,7 +220,7 @@ function geofield_leaflet_library() {
       "$leaflet_widget/lib/Leaflet.draw/leaflet.draw-src.js" => array(),
     ),
     'dependencies' => array(
-      array('geofield_leaflet', 'Leaflet'),
+      array('leaflet_widget', 'Leaflet'),
     ),
   );
 
@@ -230,7 +229,7 @@ function geofield_leaflet_library() {
   $leaflet = libraries_get_path('leaflet');
   $leaflet = !empty($leaflet) ? "$leaflet/dist/" : "$leaflet_widget/lib/Leaflet/";
   $libraries['Leaflet'] = array(
-    'title' => 'Leaflet (Geofield widget)',
+    'title' => 'Leaflet (Leaflet Widget)',
     'version' => '0.4.5',
     'css' => array(
       "$leaflet/leaflet.css" => array(),
@@ -244,7 +243,7 @@ function geofield_leaflet_library() {
   return $libraries;
 }
 
-function geofield_leaflet_geojson_feature_collection($features, $properties = array()) {
+function leaflet_widget_geojson_feature_collection($features, $properties = array()) {
   if (!is_array($features)) {
     $features = array($features);
   }
@@ -255,7 +254,7 @@ function geofield_leaflet_geojson_feature_collection($features, $properties = ar
   );
 }
 
-function geofield_leaflet_geojson_feature($wkt, $properties = array()) {
+function leaflet_widget_geojson_feature($wkt, $properties = array()) {
   $geophp = geophp_load();
   if (!$geophp) return FALSE;
 
@@ -268,15 +267,15 @@ function geofield_leaflet_geojson_feature($wkt, $properties = array()) {
 }
 
 /**
- * Implements geofield_leaflet_base_layers().
+ * Implements hook_leaflet_widget_base_layers().
  */
-function geofield_leaflet_geofield_leaflet_base_layers() {
+function leaflet_widget_leaflet_widget_base_layers() {
   return array(
     'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png' => 'OSM Mapnik',
   );
 }
 
-function geofield_leaflet_base_layers() {
+function leaflet_widget_base_layers() {
   $options = array();
 
   if (module_exists('leaflet')) {
@@ -287,5 +286,5 @@ function geofield_leaflet_base_layers() {
     }
   }
 
-  return array_merge($options, module_invoke_all('geofield_leaflet_base_layers'));
+  return array_merge($options, module_invoke_all('leaflet_widget_base_layers'));
 }

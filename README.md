@@ -1,42 +1,34 @@
-# Geofield Leaflet
+# Leaflet Widget
 
 A [Geofield] widget that provides a [Leaflet] map widget with the
 [Leaflet.widget] plugin for adding features. [Leaflet.widget] uses the
-[Leaflet.draw] vector creation tools.
+[Leaflet.draw] geometry creation tools.
 
 ## Features:
 
-Supports creation of simple geometries:
-
-- Point
-- LineString
-- Polygon
-
-And creation of complex geometries:
-
-- MultiPoint
-- MultiLineString
-- MultiPolygon
-
-Can be used with single-valued or multi-valued Geofields (cardinality).
-
-__Note: due to a side-effect of Geofield's GeoJSON storage, currently all 
-geometries of the same type will be grouped into their complex equivalent and 
-stored as a single field value.__
+- Create & manage simple geometries: Point, LineString, Polygon.
+- Maintains complex geometries: MultiPoint, MultiLineString, MultiPolygon and
+  GeometryCollection. (These can't be created yet but it won't mess with your
+  existing data.)
+- Delete geometries.
+- Supports single or multi-value Geofields (cardinality).
+- Use base layers defined by [Leaflet module].
 
 ## Installation tips:
 
-- Currently Geofield Leaflet uses the [Leaflet] library provided by the 
-[Leaflet Drupal] module.
+- Download [Leaflet.widget] and place it in your libraries directory (see 
+  [Libraries API]). E.g: sites/all/libraries
+- Requires [Leaflet] to be available. By default the version bundled with
+  [Leaflet.widget] will be used. However if you have [Leaflet module] installed
+  and [Leaflet] located at <path/to/libraries>/leaflet, that version will be
+  used.
 - This module requires the latest dev release of [GeoPHP] as there are issues 
-with parsing GeoJSON in the latest stable release.
-- Make sure you have the most recent version of the [Leaflet.widget] plugin in 
-your 'libraries' directory (see [Libraries API].
+  with parsing GeoJSON in the latest stable release.
 
 [Leaflet]: http://leaflet.cloudmade.com
 [GeoPHP]: http://drupal.org/project/geophp
-[Leaflet Drupal]: http://drupal.org/project/leaflet
+[Leaflet module]: http://drupal.org/project/leaflet
 [Geofield]: http://drupal.org/project/geofield
 [Leaflet.draw]: https://github.com/jacobtoye/Leaflet.draw
-[Leaflet.widget]: https://thegreat.github.com/Leaflet.widget
+[Leaflet.widget]: https://tnightingale.github.com/Leaflet.widget
 [Libraries API]: http://drupal.org/project/libraries
