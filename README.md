@@ -25,6 +25,11 @@ A [Geofield] widget that provides a [Leaflet] map widget with the
 - This module requires the latest dev release of [GeoPHP] as there are issues 
   with parsing GeoJSON in the latest stable release.
 
+## Requires:
+
+- [Libraries API] (2.x)
+- [Geofield] (1.x) - no support for 2.x yet, see: http://drupal.org/node/1834446. Patches welcome!
+
 [Leaflet]: http://leaflet.cloudmade.com
 [GeoPHP]: http://drupal.org/project/geophp
 [Leaflet module]: http://drupal.org/project/leaflet

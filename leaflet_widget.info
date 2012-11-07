@@ -1,5 +1,5 @@
 name = Leaflet Widget for Geofield
 description = "A Geofield widget that provides a Leaflet map and geometry creation tools."
 core = 7.x
-dependencies[] = geofield
-dependencies[] = libraries
+dependencies[] = geofield (1.x)
+dependencies[] = libraries (2.x)
