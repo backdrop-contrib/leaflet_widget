@@ -126,7 +126,7 @@ function leaflet_widget_field_widget_form(&$form, &$form_state, $field, $instanc
       $collection = leaflet_widget_widget_prepare_items($items);
 
       $element['geom'] = array(
-        '#type' => 'textarea',
+        '#type' => 'hidden',
         '#title' => check_plain($instance['label']),
         '#description' => check_plain($instance['description']),
         '#default_value' => drupal_json_encode($collection),
@@ -152,8 +152,8 @@ function leaflet_widget_field_widget_form(&$form, &$form_state, $field, $instanc
 function leaflet_widget_widget_prepare_items($items) {
   $features = array();
   foreach ($items as $item) {
-    if (isset($item['wkt'])) {
-      $features[] = leaflet_widget_geojson_feature($item['wkt']);
+    if (isset($item['geom'])) {
+      $features[] = leaflet_widget_geojson_feature($item['geom']);
     }
   }
   return leaflet_widget_geojson_feature_collection($features);
@@ -168,7 +168,7 @@ function leaflet_widget_widget_validate($element, &$form_state) {
   $results = array();
   if ($geojson->type === 'FeatureCollection') {
     foreach ($geojson->features as $feature) {
-      $results[] = array_merge($results, leaflet_widget_process_geojson($feature));
+      $results[] = leaflet_widget_process_geojson($feature);
     }
   }
   else {
@@ -266,11 +266,11 @@ function leaflet_widget_geojson_feature_collection($features, $properties = arra
   );
 }
 
-function leaflet_widget_geojson_feature($wkt, $properties = array()) {
+function leaflet_widget_geojson_feature($wkb, $properties = array()) {
   $geophp = geophp_load();
   if (!$geophp) return FALSE;
 
-  $geometry = geoPHP::load($wkt, 'wkt');
+  $geometry = geoPHP::load($wkb, 'wkb');
   return array(
     'type' => 'Feature',
     'geometry' => json_decode($geometry->out('json')),
