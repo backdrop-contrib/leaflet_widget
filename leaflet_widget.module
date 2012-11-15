@@ -89,8 +89,14 @@ function leaflet_widget_field_widget_settings_form($field, $instance) {
 function leaflet_widget_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
   $settings = $instance['widget']['settings'];
 
-  $widget = geofield_get_base_element($element, $items, $delta);
-  $widget['#type'] = 'fieldset';
+  $element['#type'] = 'fieldset';
+
+  // $element['input_format'] is not a db field, but we use it determine how to parse/calculate values in our widget.
+  $element['input_format'] = array(
+    '#type' => 'value',
+    '#attributes' => array('class' => array('geofield_input_format')),
+    '#value' => GEOFIELD_INPUT_AUTO_DISCOVER,
+  );
 
   switch ($instance['widget']['type']) {
     case 'leaflet_widget_widget':
@@ -110,25 +116,29 @@ function leaflet_widget_field_widget_form(&$form, &$form_state, $field, $instanc
 
       // Provide container markup for map form element.
       $container = "<div id=\"$id\" class=\"$class\" style=\"$style\"></div>";
-      $widget['leaflet_widget'] = array('#markup' => $container);
+      $element['leaflet_widget'] = array('#markup' => $container);
+      $element['input_format']['#value'] = GEOFIELD_INPUT_GEOJSON;
 
       // Overriding Geofield's validation handler.
-      $widget['#element_validate'] = array('leaflet_widget_widget_validate');
-
-      // Tell Geofield to expect GeoJSON instead of WKT.
-      $widget['input_format']['#value'] = 'geojson';
+      $element['#element_validate'] = array('leaflet_widget_widget_validate');
 
       // Prepare existing field values to be rendered in widget.
       $collection = leaflet_widget_widget_prepare_items($items);
 
-      // Set default value incase form is submitted without javascript enabled.
-      $widget['wkt']['#default_value'] = drupal_json_encode($collection);
-      $widget['wkt']['#attributes']['id'] = $settings['map']['widget']['attach'];
+      $element['geom'] = array(
+        '#type' => 'textarea',
+        '#title' => check_plain($instance['label']),
+        '#description' => check_plain($instance['description']),
+        '#default_value' => drupal_json_encode($collection),
+        '#required' => $instance['required'],
+      );
+
+      $element['geom']['#attributes']['id'] = $settings['map']['widget']['attach'];
 
       // Include javascript.
-      $widget['#attached']['library'][] = array('leaflet_widget', 'widget');
+      $element['#attached']['library'][] = array('leaflet_widget', 'widget');
       // Settings and geo-data are passed to the widget keyed by field id.
-      $widget['#attached']['js'][] = array(
+      $element['#attached']['js'][] = array(
         'type' => 'setting',
         'data' => array('leaflet_widget_widget' => array($id => $settings)),
       );
@@ -136,7 +146,7 @@ function leaflet_widget_field_widget_form(&$form, &$form_state, $field, $instanc
       break;
   }
 
-  return $widget;
+  return $element;
 }
 
 function leaflet_widget_widget_prepare_items($items) {
@@ -153,7 +163,7 @@ function leaflet_widget_widget_validate($element, &$form_state) {
   $geophp = geophp_load();
   if (!$geophp) return FALSE;
 
-  $geojson = json_decode($element['wkt']['#value']);
+  $geojson = json_decode($element['geom']['#value']);
 
   $results = array();
   if ($geojson->type === 'FeatureCollection') {
@@ -171,9 +181,11 @@ function leaflet_widget_widget_validate($element, &$form_state) {
 function leaflet_widget_process_geojson($geojson) {
   $geom = geoPHP::load($geojson, 'json');
   $type = $geom->geometryType();
-  $result = array('wkt' => $geom->out('wkt'));
-  geofield_compute_values($result, 'wkt');
-  return $result;
+  $result = array(
+    'geom' => $geom->out('wkt'),
+    'input_format' => 'wkt',
+  );
+  return geofield_compute_values($result);
 }
 
 /**
