@@ -18,6 +18,8 @@ A [Geofield] widget that provides a [Leaflet] map widget with the
 
 - Download [Leaflet.widget] and place it in your libraries directory (see 
   [Libraries API]). E.g: sites/all/libraries
+- Download [Leaflet.draw] and place it in your libraries directory (see 
+  [Libraries API]). E.g: sites/all/libraries
 - Requires [Leaflet] to be available. By default the version bundled with
   [Leaflet.widget] will be used. However if you have [Leaflet module] installed
   and [Leaflet] located at <path/to/libraries>/leaflet, that version will be
@@ -28,12 +30,12 @@ A [Geofield] widget that provides a [Leaflet] map widget with the
 ## Requires:
 
 - [Libraries API] (2.x)
-- [Geofield] (1.x) - no support for 2.x yet, see: http://drupal.org/node/1834446. Patches welcome!
+- [Geofield] (1.x & 2.x) - Choose the same version of this module.
 
 [Leaflet]: http://leaflet.cloudmade.com
 [GeoPHP]: http://drupal.org/project/geophp
 [Leaflet module]: http://drupal.org/project/leaflet
 [Geofield]: http://drupal.org/project/geofield
-[Leaflet.draw]: https://github.com/jacobtoye/Leaflet.draw
+[Leaflet.draw]: https://github.com/Leaflet/Leaflet.draw
 [Leaflet.widget]: https://tnightingale.github.com/Leaflet.widget
 [Libraries API]: http://drupal.org/project/libraries

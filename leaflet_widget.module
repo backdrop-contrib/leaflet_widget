@@ -23,6 +23,10 @@ function leaflet_widget_field_widget_info() {
         'auto_center' => TRUE,
         'zoom' => 10,
       ),
+      'geocoder' => array(
+        'enabled' => module_exists('geocoder'),
+        'handler' => NULL,
+      ),
     ),
     'behaviors' => array(
       'multiple values' => FIELD_BEHAVIOR_CUSTOM,
@@ -77,6 +81,36 @@ function leaflet_widget_field_widget_settings_form($field, $instance) {
         '#default_value' => $settings['map']['zoom'],
         '#required' => TRUE,
       );
+      // If the geocode module is available provide the option to use it.
+      if (module_exists('geocoder')) {
+        $form['geocoder'] = array(
+          '#type' => 'fieldset',
+          '#title' => t('Geocoder settings'),
+          '#tree' => TRUE,
+        );
+        $form['geocoder']['enabled'] = array(
+          '#type' => 'checkbox',
+          '#title' => t('Show geocoder field'),
+          '#default_value' => !empty($settings['geocoder']['enabled']),
+        );
+        $processors = array();
+        foreach (geocoder_handler_info('text') as $item => $info) {
+          $processors[$item] = $info['title'];
+        }
+        $form['geocoder']['handler'] = array(
+          '#type' => 'select',
+          '#title' => t('Handler to use'),
+          '#options' => $processors,
+          '#required' => TRUE,
+          '#default_value' => $settings['geocoder']['handler'],
+          '#states' => array(
+            'visible' => array(
+              ':input[name$="instance[widget][settings][geocoder][enabled]"]' => array('checked' => TRUE),
+            ),
+          ),
+        );
+
+      }
       break;
   }
 
@@ -143,6 +177,20 @@ function leaflet_widget_field_widget_form(&$form, &$form_state, $field, $instanc
         'data' => array('leaflet_widget_widget' => array($id => $settings)),
       );
 
+      // If geocoder is enabled add geocider field.
+      if (!empty($settings['geocoder']['enabled']) && module_exists('geocoder')) {
+        $geocoder_handler = geocoder_get_handler($settings['geocoder']['handler']);
+        $element['geocoder'] = array(
+          '#type' => 'textfield',
+          '#title' => t('Geo-Coding'),
+          '#description' => t('Enter an address and click "Add" to insert it as marker on the map.'),
+          '#attributes' => array(
+            'class' => array('geocoder'),
+          ),
+          '#field_suffix' => '<a href="#" class="geocoder-submit">' . t('Add') .'</a>',
+        );
+      }
+
       break;
   }
 
@@ -163,23 +211,18 @@ function leaflet_widget_widget_validate($element, &$form_state) {
   $geophp = geophp_load();
   if (!$geophp) return FALSE;
 
-  $geojson = json_decode($element['geom']['#value']);
-
-  $results = array();
-  if ($geojson->type === 'FeatureCollection') {
-    foreach ($geojson->features as $feature) {
-      $results[] = leaflet_widget_process_geojson($feature);
-    }
-  }
-  else {
-    $results = array(leaflet_widget_process_geojson($geojson));
-  }
+  $geojson = $element['geom']['#value'];
+  $results = array(leaflet_widget_process_geojson($geojson));
 
   form_set_value($element, $results, $form_state);
 }
 
 function leaflet_widget_process_geojson($geojson) {
   $geom = geoPHP::load($geojson, 'json');
+  // Avoid throwing a notice if there was a failure.
+  if (!$geom) {
+    return array();
+  }
   $type = $geom->geometryType();
   $result = array(
     'geom' => $geom->out('wkt'),
@@ -239,7 +282,7 @@ function leaflet_widget_library() {
   // If available, use the same Leaflet as Leaflet module. Otherwise use the
   // one bundled with Leaflet.widget.
   $leaflet = libraries_get_path('leaflet');
-  $leaflet = !empty($leaflet) ? "$leaflet/dist/" : "$leaflet_widget/lib/Leaflet/";
+  $leaflet = !empty($leaflet) ? $leaflet : "$leaflet_widget/lib/Leaflet/";
   $libraries['Leaflet'] = array(
     'title' => 'Leaflet (Leaflet Widget)',
     'version' => '0.4.5',
@@ -249,6 +292,12 @@ function leaflet_widget_library() {
     ),
     'js' => array(
       "$leaflet/leaflet-src.js" => array(),
+      0 => array(
+        'type' => 'setting',
+        'data' => array(
+          'leaflet_widget' => array('defaultIconPath' => file_create_url($leaflet) . '/images'),
+        ),
+      ),
     ),
   );
 
@@ -266,11 +315,11 @@ function leaflet_widget_geojson_feature_collection($features, $properties = arra
   );
 }
 
-function leaflet_widget_geojson_feature($wkb, $properties = array()) {
+function leaflet_widget_geojson_feature($wkt, $properties = array()) {
   $geophp = geophp_load();
   if (!$geophp) return FALSE;
 
-  $geometry = geoPHP::load($wkb, 'wkb');
+  $geometry = geoPHP::load($wkt, 'wkt');
   return array(
     'type' => 'Feature',
     'geometry' => json_decode($geometry->out('json')),
