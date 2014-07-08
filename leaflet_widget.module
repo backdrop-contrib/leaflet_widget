@@ -1,4 +1,8 @@
 <?php
+/**
+ * @file
+ * Leaflet widget module for Geofield.
+ */
 
 /**
  * Implements hook_field_widget_info().
@@ -11,14 +15,14 @@ function leaflet_widget_field_widget_info() {
 
   $widgets['leaflet_widget_widget'] = array(
     'label' => 'Leaflet.widget',
-    'description' => 'Provides a map powered by Leaflet and Leaflet.widget.',
+    'description' => t('Provides a map powered by Leaflet and Leaflet.widget.'),
     'field types' => array('geofield'),
     'settings' => array(
       'map' => array(
         'base_url' => array_shift($urls),
         'center' => array(
           'lat' => 0.0,
-          'lng' => 0.0
+          'lng' => 0.0,
         ),
         'auto_center' => TRUE,
         'zoom' => 10,
@@ -48,36 +52,41 @@ function leaflet_widget_field_widget_settings_form($field, $instance) {
     case 'leaflet_widget_widget':
       $form['map'] = array(
         '#type' => 'fieldset',
-        '#title' => 'Default map settings',
+        '#title' => t('Default map settings'),
       );
       $form['map']['base_url'] = array(
         '#type' => 'select',
-        '#title' => 'Leaflet.draw widget settings',
+        '#title' => t('Leaflet.draw widget settings'),
         '#default_value' => $settings['map']['base_url'],
         '#options' => leaflet_widget_base_layers(),
       );
-      $form['map']['center'] = array('#type' => 'fieldset', '#collapsed' => TRUE, '#collapsible' => TRUE, '#title' => 'Default map center');
+      $form['map']['center'] = array(
+        '#type' => 'fieldset',
+        '#collapsed' => TRUE,
+        '#collapsible' => TRUE,
+        '#title' => 'Default map center',
+      );
       $form['map']['center']['lat'] = array(
-        '#type' => 'textfield', // 'hidden',
-        '#title' => 'Latitude',
+        '#type' => 'textfield',
+        '#title' => t('Latitude'),
         '#default_value' => $settings['map']['center']['lat'],
         '#required' => TRUE,
       );
       $form['map']['center']['lng'] = array(
-        '#type' => 'textfield', // 'hidden',
-        '#title' => 'Longtitude',
+        '#type' => 'textfield',
+        '#title' => t('Longtitude'),
         '#default_value' => $settings['map']['center']['lng'],
         '#required' => TRUE,
       );
       $form['map']['auto_center'] = array(
         '#type' => 'checkbox',
-        '#title' => 'Automatically center map on existing features',
-        '#description' => "This option overrides the widget's default center.",
+        '#title' => t('Automatically center map on existing features'),
+        '#description' => t("This option overrides the widget's default center."),
         '#default_value' => $settings['map']['auto_center'],
       );
       $form['map']['zoom'] = array(
-        '#type' => 'textfield', // 'hidden',
-        '#title' => 'Default zoom level',
+        '#type' => 'textfield',
+        '#title' => t('Default zoom level'),
         '#default_value' => $settings['map']['zoom'],
         '#required' => TRUE,
       );
@@ -125,7 +134,8 @@ function leaflet_widget_field_widget_form(&$form, &$form_state, $field, $instanc
 
   $element['#type'] = 'fieldset';
 
-  // $element['input_format'] is not a db field, but we use it determine how to parse/calculate values in our widget.
+  // $element['input_format'] is not a db field, but we use it determine how to
+  // parse/calculate values in our widget.
   $element['input_format'] = array(
     '#type' => 'value',
     '#attributes' => array('class' => array('geofield_input_format')),
@@ -144,7 +154,8 @@ function leaflet_widget_field_widget_form(&$form, &$form_state, $field, $instanc
       $settings['map']['widget']['autoCenter'] = $settings['map']['auto_center'];
       if ($field['cardinality'] != 1) {
         $settings['map']['widget']['multiple'] = TRUE;
-        // Leaflet.widget treats multiple == true && !cardinality as 'unlimited'.
+        // Leaflet.widget treats multiple == true && !cardinality as
+        // 'unlimited'.
         $settings['map']['widget']['cardinality'] = $field['cardinality'] > 0 ? $field['cardinality'] : 0;
       }
 
@@ -177,7 +188,7 @@ function leaflet_widget_field_widget_form(&$form, &$form_state, $field, $instanc
         'data' => array('leaflet_widget_widget' => array($id => $settings)),
       );
 
-      // If geocoder is enabled add geocider field.
+      // If geocoder is enabled add geocoder field.
       if (!empty($settings['geocoder']['enabled']) && module_exists('geocoder')) {
         $geocoder_handler = geocoder_get_handler($settings['geocoder']['handler']);
         $element['geocoder'] = array(
@@ -187,7 +198,7 @@ function leaflet_widget_field_widget_form(&$form, &$form_state, $field, $instanc
           '#attributes' => array(
             'class' => array('geocoder'),
           ),
-          '#field_suffix' => '<a href="#" class="geocoder-submit">' . t('Add') .'</a>',
+          '#field_suffix' => '<a href="#" class="geocoder-submit">' . t('Add') . '</a>',
         );
       }
 
@@ -197,6 +208,15 @@ function leaflet_widget_field_widget_form(&$form, &$form_state, $field, $instanc
   return $element;
 }
 
+/**
+ * Prepares the field items - return a geoJSON FeatureCollection.
+ *
+ * @param array $items
+ *   The items to prepare as provided by hook_field_widget_form().
+ *
+ * @return array
+ *   A geoJSON FeatureCollection.
+ */
 function leaflet_widget_widget_prepare_items($items) {
   $features = array();
   foreach ($items as $item) {
@@ -207,9 +227,16 @@ function leaflet_widget_widget_prepare_items($items) {
   return leaflet_widget_geojson_feature_collection($features);
 }
 
+/**
+ * Widget validation callback.
+ *
+ * This is used to process the posted values to proper geofield values.
+ */
 function leaflet_widget_widget_validate($element, &$form_state) {
   $geophp = geophp_load();
-  if (!$geophp) return FALSE;
+  if (!$geophp) {
+    return FALSE;
+  }
 
   $geojson = $element['geom']['#value'];
   $results = array(leaflet_widget_process_geojson($geojson));
@@ -217,6 +244,15 @@ function leaflet_widget_widget_validate($element, &$form_state) {
   form_set_value($element, $results, $form_state);
 }
 
+/**
+ * Ensures the posted values match the geofield values.
+ *
+ * @param string $geojson
+ *   The geoJSON values.
+ *
+ * @return array
+ *   List of geofield compatible values.
+ */
 function leaflet_widget_process_geojson($geojson) {
   $geom = geoPHP::load($geojson, 'json');
   // Avoid throwing a notice if there was a failure.
@@ -304,7 +340,16 @@ function leaflet_widget_library() {
   return $libraries;
 }
 
-function leaflet_widget_geojson_feature_collection($features, $properties = array()) {
+/**
+ * Creates a geoJSON FeatureCollection out of an array of features.
+ *
+ * @param array $features
+ *   The features to pack into the FeatureCollection.
+ *
+ * @return array
+ *   A geoJSON FeatureCollection.
+ */
+function leaflet_widget_geojson_feature_collection($features) {
   if (!is_array($features)) {
     $features = array($features);
   }
@@ -315,9 +360,22 @@ function leaflet_widget_geojson_feature_collection($features, $properties = arra
   );
 }
 
+/**
+ * Creates a geoJSON feature from a geofield wkt value.
+ *
+ * @param string $wkt
+ *   Well known text value.
+ * @param array $properties
+ *   Properties for the geoJSON feature.
+ *
+ * @return array|bool
+ *   Returns a geoJSON feature or FALSE on failure.
+ */
 function leaflet_widget_geojson_feature($wkt, $properties = array()) {
   $geophp = geophp_load();
-  if (!$geophp) return FALSE;
+  if (!$geophp) {
+    return FALSE;
+  }
 
   $geometry = geoPHP::load($wkt, 'wkt');
   return array(
@@ -336,6 +394,15 @@ function leaflet_widget_leaflet_widget_base_layers() {
   );
 }
 
+/**
+ * Returns the available leaflet base layers.
+ *
+ * Invokes hook_leaflet_widget_base_layers() to allow modules adding additional
+ * layers just for the widget.
+ *
+ * @return array
+ *   A list of leaflet layers to use.
+ */
 function leaflet_widget_base_layers() {
   $options = array();
 
