@@ -19,7 +19,28 @@
         map.widget.enable();
 
         // Serialize data and set input value on submit.
-        $(item).parents('form').bind('submit', $.proxy(map.widget.write, map.widget));
+        $(item).parents('form')
+          .bind('submit',
+            $.proxy(map.widget.write, map.widget)
+          );
+        // Support for inline entity form. Event mousedown / click is to late.
+        $(item).parents('.ief-form').find('.ief-entity-submit').bind(
+          'mousedown.leaflet_widget',
+          $.proxy(map.widget.write, map.widget)
+        );
+        // Try our best to provide generic support for forms without a submit
+        // event e.g. inline entity forms.
+        map.on('draw:marker-created draw:poly-created layerremove', function() {
+          // Delay execution since we might rely on event handlers fired after
+          // this one.
+          // Unfortunately there aren't better events yet.
+          // @TODO Add more events to Leaflet.widget.js
+          if (Drupal.settings.leaflet_widget_widget[id].eventDelay) {
+            window.clearTimeout(Drupal.settings.leaflet_widget_widget[id].eventDelay);
+            Drupal.settings.leaflet_widget_widget[id].eventDelay = false;
+          }
+          Drupal.settings.leaflet_widget_widget[id].eventDelay = window.setTimeout($.proxy(map.widget.write, map.widget), 500);
+        });
 
         Drupal.leaflet_widget[id] = map;
 
