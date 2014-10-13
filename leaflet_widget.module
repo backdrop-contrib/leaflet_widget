@@ -378,6 +378,11 @@ function leaflet_widget_geojson_feature($wkt, $properties = array()) {
   }
 
   $geometry = geoPHP::load($wkt, 'wkt');
+  // Avoid notice on error.
+  if (!$geometry) {
+    return FALSE;
+  }
+
   return array(
     'type' => 'Feature',
     'geometry' => json_decode($geometry->out('json')),
