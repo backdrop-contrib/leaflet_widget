@@ -144,7 +144,7 @@ function leaflet_widget_field_widget_form(&$form, &$form_state, $field, $instanc
 
   switch ($instance['widget']['type']) {
     case 'leaflet_widget_widget':
-      $id = 'leaflet-widget_' . str_replace('_', '-', $instance['field_name']);
+      $id = 'leaflet-widget_' . drupal_html_id(str_replace('_', '-', $instance['field_name']));
       $class = 'leaflet-widget';
       $style = 'height: 300px;';
 
