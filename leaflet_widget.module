@@ -168,7 +168,15 @@ function leaflet_widget_field_widget_form(&$form, &$form_state, $field, $instanc
       $element['#element_validate'] = array('leaflet_widget_widget_validate');
 
       // Prepare existing field values to be rendered in widget.
-      $collection = leaflet_widget_widget_prepare_items($items);
+      $geom_type = 'wkt';
+      if (!empty($form_state['process_input'])) {
+        // If the input was processed it ran through
+        // leaflet_widget_process_geojson() which uses geofield_compute_values()
+        // and this function returns wkb format. So adjust our parsing to avoid
+        // nasty sideeffects.
+        $geom_type = 'wkb';
+      }
+      $collection = leaflet_widget_widget_prepare_items($items, $geom_type);
 
       $element['geom'] = array(
         '#type' => 'hidden',
@@ -213,15 +221,20 @@ function leaflet_widget_field_widget_form(&$form, &$form_state, $field, $instanc
  *
  * @param array $items
  *   The items to prepare as provided by hook_field_widget_form().
+ * @param string|NULL $geom_type
+ *   The geometry type the geometry data are given. Set to NULL to use
+ *   autodetect. It's recommended to define the type to speed up processing.
  *
  * @return array
  *   A geoJSON FeatureCollection.
  */
-function leaflet_widget_widget_prepare_items($items) {
+function leaflet_widget_widget_prepare_items($items, $geom_type = 'wkt') {
   $features = array();
   foreach ($items as $item) {
     if (isset($item['geom'])) {
-      $features[] = leaflet_widget_geojson_feature($item['geom']);
+      // Set geom type to NULL - it can be wkt or wkb depending on the form
+      // state.
+      $features[] = leaflet_widget_geojson_feature($item['geom'], array(), $geom_type);
     }
   }
   return leaflet_widget_geojson_feature_collection($features);
@@ -361,23 +374,26 @@ function leaflet_widget_geojson_feature_collection($features) {
 }
 
 /**
- * Creates a geoJSON feature from a geofield wkt value.
+ * Creates a geoJSON feature from a geofield geom value.
  *
- * @param string $wkt
+ * @param string $geom
  *   Well known text value.
  * @param array $properties
  *   Properties for the geoJSON feature.
+ * @param string|NULL $geom_type
+ *   The geometry type the geometry data are given. Set to NULL to use
+ *   autodetect. It's recommended to define the type to speed up processing.
  *
  * @return array|bool
  *   Returns a geoJSON feature or FALSE on failure.
  */
-function leaflet_widget_geojson_feature($wkt, $properties = array()) {
+function leaflet_widget_geojson_feature($geom, $properties = array(), $geom_type = 'wkt') {
   $geophp = geophp_load();
   if (!$geophp) {
     return FALSE;
   }
 
-  $geometry = geoPHP::load($wkt, 'wkt');
+  $geometry = geoPHP::load($geom, $geom_type);
   // Avoid notice on error.
   if (!$geometry) {
     return FALSE;
