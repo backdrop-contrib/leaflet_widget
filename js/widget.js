@@ -5,11 +5,11 @@
   Drupal.behaviors.geofield_widget = {
     attach: function (context, settings) {
       // Ensure we've set the default icon path to the leaflet library.
-      L.Icon.Default.imagePath = settings.leaflet_widget.defaultIconPath;
+      L.Icon.Default.imagePath = Drupal.settings.leaflet_widget.defaultIconPath;
 
       $('.leaflet-widget').once().each(function (i, item) {
         var id = $(item).attr('id'),
-          options = settings.leaflet_widget_widget[id];
+          options = Drupal.settings.leaflet_widget_widget[id];
 
         L.Util.extend(options.map, {
           layers: [L.tileLayer(options.map.base_url)]
