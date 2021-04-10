@@ -1,5 +1,7 @@
 # Leaflet Widget
 
+This port is work in progress, do not use this on productions sites yet!
+
 A [Geofield] widget that provides a [Leaflet] map widget with the
 [Leaflet.widget] plugin for adding features. [Leaflet.widget] uses the
 [Leaflet.draw] geometry creation tools.
@@ -16,31 +18,37 @@ A [Geofield] widget that provides a [Leaflet] map widget with the
 
 ## Installation:
 
-- Install and enable Leaflet Widget and its required modules in the usual way. Learn more about [installing Drupal modules].
-- Download [Leaflet.widget] and place it in your libraries directory (see 
-  [Libraries API]). E.g: sites/all/libraries
-  Example path: sites/all/libraries/Leaflet.widget/dist/Leaflet.widget.js
-- Download [Leaflet.draw] and place it in your libraries directory (see 
-  [Libraries API]). E.g: sites/all/libraries
-  Example path: sites/all/libraries/Leaflet.draw/dist/leaflet.draw.js
-- Requires [Leaflet] to be available. By default the version bundled with
-  [Leaflet.widget] will be used. However if you have [Leaflet module] installed
-  and [Leaflet] located at <path/to/libraries>/leaflet, that version will be
-  used.
-- This module requires the latest dev release of [GeoPHP] as there are issues 
-  with parsing GeoJSON in the latest stable release.
+- Install this module using the official 
+  [Backdrop CMS instructions](https://backdropcms.org/guide/modules)
+
+
+## Issues
+
+Bugs and Feature requests should be reported in the 
+[Issue Queue](https://github.com/backdrop-contrib/leaflet_widget/issues)
+
 
 ## Requires:
 
-- [Libraries API] (2.x)
-- [Geofield] (1.x & 2.x) - Choose the same version of this module.
-- [GeoPHP] latest development version.
+- Leaflet
+- Geofield
+- GeoPHP latest development version.
 
-[Leaflet]: http://leaflet.cloudmade.com
-[GeoPHP]: http://drupal.org/project/geophp
-[Leaflet module]: http://drupal.org/project/leaflet
-[Geofield]: http://drupal.org/project/geofield
-[Leaflet.draw]: https://github.com/Leaflet/Leaflet.draw
-[Leaflet.widget]: https://tnightingale.github.com/Leaflet.widget
-[Libraries API]: http://drupal.org/project/libraries
-[installing Drupal modules]: https://www.drupal.org/documentation/install/modules-themes/modules-7
+- Leaflet: http://leaflet.cloudmade.com
+- GeoPHP: http://drupal.org/project/geophp
+- Leaflet module: http://drupal.org/project/leaflet
+- Geofield: http://drupal.org/project/geofield
+- Leaflet.draw: https://github.com/Leaflet/Leaflet.draw
+- Leaflet.widget: https://tnightingale.github.com/Leaflet.widget
+
+## Current Maintainers
+
+- Indigoxela
+
+## Credits
+
+- TODO
+
+## License
+
+This project is GPL v2 software. See the LICENSE.txt file in this directory for complete text.
