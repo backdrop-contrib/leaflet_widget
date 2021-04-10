@@ -1,12 +1,13 @@
 # Leaflet Widget
 
-This port is work in progress, do not use this on productions sites yet!
+**This port is work in progress, do not use this on productions sites yet,
+it is broken!**
 
-A [Geofield] widget that provides a [Leaflet] map widget with the
-[Leaflet.widget] plugin for adding features. [Leaflet.widget] uses the
-[Leaflet.draw] geometry creation tools.
+A [Geofield](https://backdropcms.org/project/geofield) widget that provides a
+Leaflet map widget with the Leaflet.widget plugin for adding features.
+Leaflet.widget uses the Leaflet.draw geometry creation tools.
 
-## Features:
+*Features*
 
 - Create & manage simple geometries: Point, LineString, Polygon.
 - Maintains complex geometries: MultiPoint, MultiLineString, MultiPolygon and
@@ -32,14 +33,7 @@ Bugs and Feature requests should be reported in the
 
 - Leaflet
 - Geofield
-- GeoPHP latest development version.
-
-- Leaflet: http://leaflet.cloudmade.com
-- GeoPHP: http://drupal.org/project/geophp
-- Leaflet module: http://drupal.org/project/leaflet
-- Geofield: http://drupal.org/project/geofield
-- Leaflet.draw: https://github.com/Leaflet/Leaflet.draw
-- Leaflet.widget: https://tnightingale.github.com/Leaflet.widget
+- GeoPHP latest development version (conflicts with geofield)
 
 ## Current Maintainers
 
