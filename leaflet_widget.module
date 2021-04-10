@@ -144,7 +144,7 @@ function leaflet_widget_field_widget_form(&$form, &$form_state, $field, $instanc
 
   switch ($instance['widget']['type']) {
     case 'leaflet_widget_widget':
-      $id = 'leaflet-widget_' . drupal_html_id(str_replace('_', '-', $instance['field_name']));
+      $id = 'leaflet-widget_' . backdrop_html_id(str_replace('_', '-', $instance['field_name']));
       $class = 'leaflet-widget';
       $style = 'height: 300px;';
 
@@ -182,7 +182,7 @@ function leaflet_widget_field_widget_form(&$form, &$form_state, $field, $instanc
         '#type' => 'hidden',
         '#title' => check_plain($instance['label']),
         '#description' => check_plain($instance['description']),
-        '#default_value' => drupal_json_encode($collection),
+        '#default_value' => backdrop_json_encode($collection),
         '#required' => $instance['required'],
       );
 
@@ -281,74 +281,81 @@ function leaflet_widget_process_geojson($geojson) {
 }
 
 /**
- * Implements hook_library().
+ * Implements hook_library_info().
  */
-function leaflet_widget_library() {
-  $path = drupal_get_path('module', 'leaflet_widget');
-  $leaflet_widget = libraries_get_path('Leaflet.widget');
-
-  $libraries = array();
+function leaflet_widget_library_info() {
+  $module_path = backdrop_get_path('module', 'leaflet_widget');
+  $libraries_path = $module_path . '/libraries/Leaflet.widget';
+  $leaflet_path = backdrop_get_path('module', 'leaflet');
 
   $libraries['widget'] = array(
     'title' => 'Widget behavior',
-    'version' => '1.x',
+    'version' => 'unknown',
     'js' => array(
-      "$path/js/widget.js" => array(),
+      "$module_path/js/widget.js" => array(),
+      0 => array(
+        'type' => 'setting',
+        'data' => array(
+          'leaflet_widget' => array('defaultIconPath' => $leaflet_path . '/libraries/leaflet/images/'),
+        ),
+      ),
     ),
     'dependencies' => array(
       array('leaflet_widget', 'Leaflet.widget'),
     ),
   );
 
-  $libraries['Leaflet.widget'] = array(
-    'title' => 'Leaflet.widget',
-    'version' => '1.x',
-    'css' => array(
-      "$leaflet_widget/dist/Leaflet.widget.min.css" => array(),
-    ),
+  // @todo Put this in an extra directory.
+  $libraries['Leaflet.draw'] = array(
+    'name' => 'Leaflet Draw Library',
+    'title' => t('Leaflet Draw Library'),
+    'version' => '0.4.14',// FIXME??
+    'vendor url' => 'https://github.com/Leaflet/Leaflet.draw',
     'js' => array(
-      "$leaflet_widget/dist/Leaflet.widget.js" => array(),
+      $libraries_path . '/lib/Leaflet.draw/leaflet.draw.js' => array(
+        'type' => 'file',
+        'group' => JS_LIBRARY,
+      ),
+    ),
+    'css' => array(
+      $libraries_path . '/lib/Leaflet.draw/leaflet.draw.css' => array(
+        'type' => 'file',
+        'media' => 'all',
+      ),
     ),
     'dependencies' => array(
+      array('leaflet', 'leaflet'),
+    ),
+  );
+
+  // Caution, this needs to get patched!
+  $libraries['Leaflet.widget'] = array(
+    'name' => 'Leaflet Widget Library',
+    'title' => t('Leaflet Widget Library'),
+    'version' => 'dev-5b40011',
+    'vendor url' => 'https://github.com/tnightingale/Leaflet.widget',
+    'js' => array(
+      $libraries_path . '/dist/Leaflet.widget.js' => array(
+        'type' => 'file',
+        'group' => JS_LIBRARY,
+      ),
+    ),
+    'css' => array(
+      $libraries_path . '/dist/Leaflet.widget.css' => array(
+        'type' => 'file',
+        'media' => 'all',
+      ),
+      $libraries_path . '/dist/Leaflet.select.css' => array(
+        'type' => 'file',
+        'media' => 'all',
+      ),
+    ),
+    'dependencies' => array(
+      array('leaflet', 'leaflet'),
       array('leaflet_widget', 'Leaflet.draw'),
     ),
   );
 
-  $libraries['Leaflet.draw'] = array(
-    'title' => 'Leaflet.draw',
-    'version' => '1.x',
-    'css' => array(
-      "$leaflet_widget/lib/Leaflet.draw/leaflet.draw.css" => array(),
-    ),
-    'js' => array(
-      "$leaflet_widget/lib/Leaflet.draw/leaflet.draw-src.js" => array(),
-    ),
-    'dependencies' => array(
-      array('leaflet_widget', 'Leaflet'),
-    ),
-  );
-
-  // If available, use the same Leaflet as Leaflet module. Otherwise use the
-  // one bundled with Leaflet.widget.
-  $leaflet = libraries_get_path('leaflet');
-  $leaflet = !empty($leaflet) ? $leaflet : "$leaflet_widget/lib/Leaflet/";
-  $libraries['Leaflet'] = array(
-    'title' => 'Leaflet (Leaflet Widget)',
-    'version' => '0.4.5',
-    'css' => array(
-      "$leaflet/leaflet.css" => array(),
-      "$leaflet/leaflet.ie.css" => array('browsers' => array('IE' => 'lte IE 8')),
-    ),
-    'js' => array(
-      "$leaflet/leaflet-src.js" => array(),
-      0 => array(
-        'type' => 'setting',
-        'data' => array(
-          'leaflet_widget' => array('defaultIconPath' => file_create_url($leaflet) . '/images'),
-        ),
-      ),
-    ),
-  );
 
   return $libraries;
 }

@@ -1,5 +1,7 @@
 name = Leaflet Widget for Geofield
 description = "A Geofield widget that provides a Leaflet map and geometry creation tools."
-core = 7.x
-dependencies[] = geofield (>=1)
-dependencies[] = libraries (2.x)
+backdrop = 1.x
+
+dependencies[] = leaflet
+dependencies[] = geofield
+dependencies[] = geophp
