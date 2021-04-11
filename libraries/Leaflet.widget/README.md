@@ -1,3 +1,15 @@
+Fork update
+===========
+
+This fork resolves compatibility problems with Leaflet 0.7.7 was tested with
+Drupal module https://www.drupal.org/project/leaflet_widget that provides a
+Geofield Leaflet Widget to dynamically set field values lat/lon via Leaflet
+map. To use with leaflet_widget module you need to add the library release
+https://github.com/citlacom/Leaflet.widget/releases/tag/v1.3 at Drupal
+sites/all/libraries/Leaflet.widget directory. This fork also enable draggable
+Marker option so created Marks could be moved in the map with click and drag on
+it.
+
 Leaflet.widget
 ==============
 

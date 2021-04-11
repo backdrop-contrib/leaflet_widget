@@ -39,7 +39,7 @@ L.Polyline.include({
 			p = points[i - 1];
 			p1 = points[i];
 
-			
+
 			if (this._lineSegmentsIntersectsRange(p, p1, i - 2)) {
 				return true;
 			}
@@ -158,7 +158,7 @@ L.Handler.Draw = L.Handler.extend({
 		this._map.fire('drawing', { drawingType: this.type });
 		L.Handler.prototype.enable.call(this);
 	},
-	
+
 	addHooks: function () {
 		if (this._map) {
 			L.DomUtil.disableTextSelection();
@@ -213,7 +213,7 @@ L.Handler.Draw = L.Handler.extend({
 
 L.Polyline.Draw = L.Handler.Draw.extend({
 	Poly: L.Polyline,
-	
+
 	type: 'polyline',
 
 	options: {
@@ -246,7 +246,7 @@ L.Polyline.Draw = L.Handler.Draw.extend({
 		}
 		L.Handler.Draw.prototype.initialize.call(this, map, options);
 	},
-	
+
 	addHooks: function () {
 		L.Handler.Draw.prototype.addHooks.call(this);
 		if (this._map) {
@@ -290,7 +290,7 @@ L.Polyline.Draw = L.Handler.Draw.extend({
 		this._clearHideErrorTimeout();
 
 		this._cleanUpShape();
-		
+
 		// remove markers from map
 		this._map.removeLayer(this._markerGroup);
 		delete this._markerGroup;
@@ -299,7 +299,7 @@ L.Polyline.Draw = L.Handler.Draw.extend({
 		this._map.removeLayer(this._poly);
 		delete this._poly;
 
-		this._mouseMarker.off('click', this._onClick);
+		this._mouseMarker.off('click', this._onClick, this);
 		this._map.removeLayer(this._mouseMarker);
 		delete this._mouseMarker;
 
@@ -389,19 +389,19 @@ L.Polyline.Draw = L.Handler.Draw.extend({
 		if (this._markers.length > 1) {
 			this._markers[this._markers.length - 1].on('click', this._finishShape, this);
 		}
-		
+
 		// Remove the old marker click handler (as only the last point should close the polyline)
 		if (this._markers.length > 2) {
 			this._markers[this._markers.length - 2].off('click', this._finishShape);
 		}
 	},
-	
+
 	_createMarker: function (latlng) {
 		var marker = new L.Marker(latlng, {
 			icon: this.options.icon,
 			zIndexOffset: this.options.zIndexOffset * 2
 		});
-		
+
 		this._markerGroup.addLayer(marker);
 
 		return marker;
@@ -418,7 +418,7 @@ L.Polyline.Draw = L.Handler.Draw.extend({
 		if (!this._guidesContainer) {
 			this._guidesContainer = L.DomUtil.create('div', 'leaflet-draw-guides', this._overlayPane);
 		}
-	
+
 		//draw a dash every GuildeLineDistance
 		for (i = this.options.guidelineDistance; i < length; i += this.options.guidelineDistance) {
 			//work out fraction along line we are
@@ -476,7 +476,7 @@ L.Polyline.Draw = L.Handler.Draw.extend({
 			distance = this._measurementRunningTotal + this._currentLatLng.distanceTo(this._markers[this._markers.length - 1].getLatLng());
 			// show metres when distance is < 1km, then show km
 			distanceStr = distance  > 1000 ? (distance  / 1000).toFixed(2) + ' km' : Math.ceil(distance) + ' m';
-			
+
 			if (this._markers.length === 1) {
 				labelText = {
 					text: 'Click to continue drawing line.',
@@ -513,7 +513,7 @@ L.Polyline.Draw = L.Handler.Draw.extend({
 		this._errorShown = false;
 
 		this._clearHideErrorTimeout();
-		
+
 		// Revert label
 		L.DomUtil.removeClass(this._label, 'leaflet-error-draw-label');
 		L.DomUtil.removeClass(this._label, 'leaflet-flash-anim');
@@ -550,7 +550,7 @@ L.Polyline.Draw = L.Handler.Draw.extend({
 
 L.Polygon.Draw = L.Polyline.Draw.extend({
 	Poly: L.Polygon,
-	
+
 	type: 'polygon',
 
 	options: {
@@ -667,7 +667,7 @@ L.SimpleShape.Draw = L.Handler.Draw.extend({
 		if (this._shape) {
 			this._fireCreatedEvent();
 		}
-		
+
 		this.disable();
 	}
 });
@@ -722,7 +722,7 @@ L.Rectangle.Draw = L.SimpleShape.Draw.extend({
 			clickable: true
 		}
 	},
-	
+
 	_initialLabelText: 'Click and drag to draw rectangle.',
 
 	_drawShape: function (latlng) {
@@ -749,10 +749,10 @@ L.Marker.Draw = L.Handler.Draw.extend({
 		icon: new L.Icon.Default(),
 		zIndexOffset: 2000 // This should be > than the highest z-index any markers
 	},
-	
+
 	addHooks: function () {
 		L.Handler.Draw.prototype.addHooks.call(this);
-		
+
 		if (this._map) {
 			this._updateLabelText({ text: 'Click map to place marker.' });
 			this._map.on('mousemove', this._onMouseMove, this);
@@ -761,7 +761,7 @@ L.Marker.Draw = L.Handler.Draw.extend({
 
 	removeHooks: function () {
 		L.Handler.Draw.prototype.removeHooks.call(this);
-		
+
 		if (this._map) {
 			if (this._marker) {
 				this._marker.off('click', this._onClick);
@@ -771,7 +771,7 @@ L.Marker.Draw = L.Handler.Draw.extend({
 				delete this._marker;
 			}
 
-			this._map.off('mousemove', this._onMouseMove);
+			this._map.off('mousemove', this._onMouseMove, this);
 		}
 	},
 
@@ -779,7 +779,9 @@ L.Marker.Draw = L.Handler.Draw.extend({
 		var newPos = e.layerPoint,
 			latlng = e.latlng;
 
-		this._updateLabelPosition(newPos);
+    if (this._label !== undefined) {
+      this._updateLabelPosition(newPos);
+    }
 
 		if (!this._marker) {
 			this._marker = new L.Marker(latlng, {
@@ -834,13 +836,13 @@ L.Control.Draw = L.Control.extend({
 	initialize: function (options) {
 		L.Util.extend(this.options, options);
 	},
-	
+
 	onAdd: function (map) {
 		var className = 'leaflet-control-draw',
 			container = L.DomUtil.create('div', className);
-	
+
 		this.handlers = {};
-	
+
 		if (this.options.polyline) {
 			this.handlers.polyline = new L.Polyline.Draw(map, this.options.polyline);
 			this._createButton(
@@ -900,7 +902,7 @@ L.Control.Draw = L.Control.extend({
 			);
 			this.handlers.marker.on('activated', this._disableInactiveModes, this);
 		}
-		
+
 		return container;
 	},
 

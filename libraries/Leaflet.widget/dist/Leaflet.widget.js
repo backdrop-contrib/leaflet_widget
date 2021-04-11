@@ -1,5 +1,5 @@
-/*! Leaflet.widget - v0.1.0 - 2012-11-02
-* Copyright (c) 2012 Affinity Bridge - Tom Nightingale <tom@affinitybridge.com> (http://affinitybridge.com)
+/*! Leaflet.widget - v0.1.0 - 2019-01-02
+* Copyright (c) 2019 Affinity Bridge - Tom Nightingale <tom@affinitybridge.com> (http://affinitybridge.com)
 * Licensed BSD */
 
 L.GeoJSONUtil = {
@@ -135,6 +135,10 @@ L.FeatureGroup.include({
     }
 });
 
+L.Marker.mergeOptions({
+    draggable: true
+});
+
 L.Marker.include({
     toGeometry: function () {
         return {
@@ -144,6 +148,60 @@ L.Marker.include({
     },
     toGeoJSON: function () {
         return L.GeoJSONUtil.feature(this.toGeometry());
+    }
+});
+
+// Disable marker tool when cardinality is full.
+L.Marker.Draw.include({
+    baseOnMouseMove: L.Marker.Draw.prototype._onMouseMove,
+    _onMouseMove: function (e) {
+        if (!this._map.widget._full) {
+            this.baseOnMouseMove(e);
+        }
+    },
+
+    addHooks: function () {
+        L.Handler.Draw.prototype.addHooks.call(this);
+        if (this._map) {
+          if (this._map.widget._full) {
+              this._updateLabelText({ text: 'Marker is already placed. Click and drag to relocate.' });
+              // Dismiss warning popup when marker or map layers are clicked so
+              // message don't disturb marker relocation.
+              this._map.off('click', this._onClick, this);
+              this._map.on('click', this.dismissWarning, this);
+
+              if (this._map.drawControl.handlers.select.options.selectable) {
+                  var selectable = this._map.drawControl.handlers.select.options.selectable;
+                  selectable.eachLayer(function (layer) {
+                      layer.on('click', this.dismissWarning, this);
+                      layer.on('drag', this.dismissWarning, this);
+                  }, this);
+              }
+          }
+          else {
+              this._updateLabelText({ text: 'Click map to place marker.' });
+          }
+
+          this._map.on('mousemove', this._onMouseMove, this);
+        }
+    },
+
+    baseRemoveHooks: L.Marker.Draw.prototype.removeHooks,
+    removeHooks: function() {
+        this.baseRemoveHooks();
+        this._map.off('click', this.dismissWarning, this);
+
+        if (this._map.drawControl.handlers.select.options.selectable) {
+            var selectable = this._map.drawControl.handlers.select.options.selectable;
+            selectable.eachLayer(function (layer) {
+                layer.off('click', this.dismissWarning, this);
+                layer.off('drag', this.dismissWarning, this);
+            }, this);
+        }
+    },
+
+    dismissWarning: function(e) {
+        this.disable();
     }
 });
 
@@ -172,7 +230,7 @@ L.Polygon.include({
     }
 });
 
-L.Polyline.include({
+L.MultiPolyline.include({
     toGeometry: function () {
         var coords = [];
 
@@ -187,7 +245,7 @@ L.Polyline.include({
     }
 });
 
-L.Polygon.include({
+L.MultiPolygon.include({
     toGeometry: function () {
         var coords = [];
 
@@ -284,25 +342,31 @@ L.Handler.Select = L.Handler.extend({
 
     select: function (e) {
         var layer = e.layer || e.target || e;
-        layer.off('click', this.select);
-        layer.on('click', this.deselect, this);
-        this._selected.addLayer(layer);
-        this._map.fire('selected', { layer: layer });
+        if (this._selected) {
+            layer.off('click', this.select);
+            layer.on('click', this.deselect, this);
+            this._selected.addLayer(layer);
+            this._map.fire('selected', { layer: layer });
+        }
     },
 
     deselect: function (e, permanent) {
         var layer = e.layer || e.target || e;
-        layer.off('click', this.deselect);
-        this._selected.removeLayer(layer);
-        this._map.fire('deselected', { layer: layer });
+        if (this._selected) {
+            layer.off('click', this.deselect);
+            this._selected.removeLayer(layer);
+            this._map.fire('deselected', { layer: layer });
 
-        if (!permanent) {
-            layer.on('click', this.select, this);
+            if (!permanent) {
+                layer.on('click', this.select, this);
+            }
         }
     },
 
     applyToSelected: function (callback, context) {
-        this._selected.eachLayer(callback, context);
+        if (this._selected) {
+            this._selected.eachLayer(callback, context);
+        }
     },
 
     _bind: function (e) {
@@ -330,8 +394,8 @@ L.LayerGroup.include({
 
 L.Control.Select = L.Control.extend({
     options: {
-        title: 'Remove selected features',
-        position: 'bottomright',
+        title: 'Delete items',
+        position: 'topright',
         remove: true
     },
 
@@ -343,7 +407,7 @@ L.Control.Select = L.Control.extend({
 
         if (this.options.remove) {
             this._createButton(
-                    this.options.remove.title,
+                    this.options.title,
                     class_name + '-remove',
                     container,
                     this._delete,
@@ -461,8 +525,9 @@ L.Handler.Widget = L.Handler.extend({
     _initDraw: function () {
         this._map.drawControl = new L.Control.Draw({
             position: 'topright',
-            polyline: { shapeOptions: this.options.drawVectorStyle },
-            polygon: { shapeOptions: this.options.drawVectorStyle },
+            polyline: false,
+            polygon: false,
+            simpleshape: false,
             circle: false,
             rectangle: false
         }).addTo(this._map);

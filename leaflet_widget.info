@@ -4,4 +4,3 @@ backdrop = 1.x
 
 dependencies[] = leaflet
 dependencies[] = geofield
-dependencies[] = geophp

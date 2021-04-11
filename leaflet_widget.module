@@ -246,10 +246,7 @@ function leaflet_widget_widget_prepare_items($items, $geom_type = 'wkt') {
  * This is used to process the posted values to proper geofield values.
  */
 function leaflet_widget_widget_validate($element, &$form_state) {
-  $geophp = geophp_load();
-  if (!$geophp) {
-    return FALSE;
-  }
+  module_load_include('inc', 'geofield', 'libraries/geophp/geoPHP');
 
   $geojson = $element['geom']['#value'];
   $results = array(leaflet_widget_process_geojson($geojson));
@@ -284,8 +281,9 @@ function leaflet_widget_process_geojson($geojson) {
  * Implements hook_library_info().
  */
 function leaflet_widget_library_info() {
+  global $base_path;
   $module_path = backdrop_get_path('module', 'leaflet_widget');
-  $libraries_path = $module_path . '/libraries/Leaflet.widget';
+  $libraries_path = $module_path . '/libraries';
   $leaflet_path = backdrop_get_path('module', 'leaflet');
 
   $libraries['widget'] = array(
@@ -296,7 +294,7 @@ function leaflet_widget_library_info() {
       0 => array(
         'type' => 'setting',
         'data' => array(
-          'leaflet_widget' => array('defaultIconPath' => $leaflet_path . '/libraries/leaflet/images/'),
+          'leaflet_widget' => array('defaultIconPath' => $base_path . $leaflet_path . '/libraries/leaflet/images/'),
         ),
       ),
     ),
@@ -305,53 +303,75 @@ function leaflet_widget_library_info() {
     ),
   );
 
-  // @todo Put this in an extra directory.
+  // Note: this is a patched version of 0.1.4.
+  // @see https://github.com/citlacom/Leaflet.widget
   $libraries['Leaflet.draw'] = array(
     'name' => 'Leaflet Draw Library',
     'title' => t('Leaflet Draw Library'),
-    'version' => '0.4.14',// FIXME??
+    'version' => '0.1.4',
     'vendor url' => 'https://github.com/Leaflet/Leaflet.draw',
     'js' => array(
-      $libraries_path . '/lib/Leaflet.draw/leaflet.draw.js' => array(
+      $libraries_path . '/Leaflet.widget/lib/Leaflet.draw/leaflet.draw.js' => array(
         'type' => 'file',
         'group' => JS_LIBRARY,
       ),
     ),
     'css' => array(
-      $libraries_path . '/lib/Leaflet.draw/leaflet.draw.css' => array(
+      $libraries_path . '/Leaflet.widget/lib/Leaflet.draw/leaflet.draw.css' => array(
         'type' => 'file',
         'media' => 'all',
       ),
     ),
     'dependencies' => array(
-      array('leaflet', 'leaflet'),
+      array('leaflet_widget', 'Leaflet.legacy'),
     ),
   );
 
-  // Caution, this needs to get patched!
-  $libraries['Leaflet.widget'] = array(
-    'name' => 'Leaflet Widget Library',
-    'title' => t('Leaflet Widget Library'),
-    'version' => 'dev-5b40011',
-    'vendor url' => 'https://github.com/tnightingale/Leaflet.widget',
+  // Compatibility problems...
+  $libraries['Leaflet.legacy'] = array(
+    'name' => 'Leaflet.legacy',
+    'title' => 'Leaflet.legacy',
+    'version' => '0.7.7',
+    'vendor url' => 'https://github.com/Leaflet/Leaflet/',
     'js' => array(
-      $libraries_path . '/dist/Leaflet.widget.js' => array(
+      $libraries_path . '/Leaflet/dist/leaflet.js' => array(
         'type' => 'file',
         'group' => JS_LIBRARY,
       ),
     ),
     'css' => array(
-      $libraries_path . '/dist/Leaflet.widget.css' => array(
+      $libraries_path . '/Leaflet/dist/leaflet.css' => array(
         'type' => 'file',
         'media' => 'all',
       ),
-      $libraries_path . '/dist/Leaflet.select.css' => array(
+    ),
+  );
+
+  // This is a _maintained_ fork of Leaflet.widget.
+  // Forked from https://github.com/tnightingale/Leaflet.widget
+  $libraries['Leaflet.widget'] = array(
+    'name' => 'Leaflet Widget Library',
+    'title' => t('Leaflet Widget Library'),
+    'version' => '1.3',
+    'vendor url' => 'https://github.com/citlacom/Leaflet.widget',
+    'js' => array(
+      $libraries_path . '/Leaflet.widget/dist/Leaflet.widget.js' => array(
+        'type' => 'file',
+        'group' => JS_LIBRARY,
+      ),
+    ),
+    'css' => array(
+      $libraries_path . '/Leaflet.widget/dist/Leaflet.widget.css' => array(
+        'type' => 'file',
+        'media' => 'all',
+      ),
+      $libraries_path . '/Leaflet.widget/dist/Leaflet.select.css' => array(
         'type' => 'file',
         'media' => 'all',
       ),
     ),
     'dependencies' => array(
-      array('leaflet', 'leaflet'),
+      array('leaflet_widget', 'Leaflet.legacy'),
       array('leaflet_widget', 'Leaflet.draw'),
     ),
   );
@@ -395,11 +415,8 @@ function leaflet_widget_geojson_feature_collection($features) {
  *   Returns a geoJSON feature or FALSE on failure.
  */
 function leaflet_widget_geojson_feature($geom, $properties = array(), $geom_type = 'wkt') {
-  $geophp = geophp_load();
-  if (!$geophp) {
-    return FALSE;
-  }
-
+  // @todo
+  module_load_include('inc', 'geofield', 'libraries/geophp/geoPHP');
   $geometry = geoPHP::load($geom, $geom_type);
   // Avoid notice on error.
   if (!$geometry) {
