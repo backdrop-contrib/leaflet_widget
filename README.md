@@ -35,7 +35,7 @@ Currently ony "OSM Mapnik" layers are usable as drawing layer. Using
 additional ones provided by the Leaflet More Maps module needs more
 investigation.
 
-The API information of this module us outdated and very likely incorrect.
+The API information of this module is outdated and very likely incorrect.
 
 ## Requires
 
