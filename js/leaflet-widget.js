@@ -44,7 +44,6 @@
           }
         }
 
-        features.addTo(map);
         // We have to turn off circle and circlemarker, as we work with GeoJSON
         // and these types are not in the spec. Leaflet would convert them to
         // regular markers.
