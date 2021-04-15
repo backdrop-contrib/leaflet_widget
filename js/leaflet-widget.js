@@ -1,5 +1,9 @@
 (function ($) {
 
+  'use strict';
+
+  var geofieldWidget = geofieldWidget || {};
+
   Backdrop.behaviors.geofield_widget = {
     attach: function (context, settings) {
 
@@ -28,7 +32,7 @@
           onEachFeature: function (feature, layer) {
             // Leaflet can add nested groups to featureGroups, but then they
             // aren't editable.
-            addLayersUnnested(layer, editableItems);
+            geofieldWidget.addLayersUnnested(layer, editableItems);
           }
         }).addTo(map);
 
@@ -53,62 +57,62 @@
             circlemarker: false
           }
         }));
-        checkFeatureLimit(editableItems, widgetSettings.cardinality);
+        geofieldWidget.checkFeatureLimit(editableItems, widgetSettings.cardinality);
 
         // Capture Leaflet.draw events (constants) to update map and textarea.
         map.on(L.Draw.Event.CREATED, function (event) {
           var layer = event.layer;
           editableItems.addLayer(layer);
 
-          writeToField(editableItems, inputId);
+          geofieldWidget.writeToField(editableItems, inputId);
 
           if (widgetSettings.cardinality > 0) {
-            checkFeatureLimit(editableItems, widgetSettings.cardinality);
+            geofieldWidget.checkFeatureLimit(editableItems, widgetSettings.cardinality);
           }
         });
 
         map.on(L.Draw.Event.EDITSTOP, function (event) {
-          writeToField(editableItems, inputId);
+          geofieldWidget.writeToField(editableItems, inputId);
         });
 
         map.on(L.Draw.Event.DELETESTOP, function (event) {
-          writeToField(editableItems, inputId);
+          geofieldWidget.writeToField(editableItems, inputId);
 
           if (widgetSettings.cardinality > 0) {
-            checkFeatureLimit(editableItems, widgetSettings.cardinality);
+            geofieldWidget.checkFeatureLimit(editableItems, widgetSettings.cardinality);
           }
         });
 
         // Serialize data and set input value on submit.
         $(item).parents('form').bind('submit', function() {
-          writeToField(editableItems, inputId);
+          geofieldWidget.writeToField(editableItems, inputId);
         });
 
       });
     }
-  }
+  };
 
   /**
    * Helper function(s).
    */
-  function addLayersUnnested(sourceLayer, targetGroup) {
+  geofieldWidget.addLayersUnnested = function (sourceLayer, targetGroup) {
     if (sourceLayer instanceof L.LayerGroup) {
       sourceLayer.eachLayer(function (layer) {
-        addLayersUnnested(layer, targetGroup);
+        geofieldWidget.addLayersUnnested(layer, targetGroup);
       });
     }
     else {
       targetGroup.addLayer(sourceLayer);
     }
-  }
+  };
 
-  function writeToField(editLayer, fieldId) {
+  geofieldWidget.writeToField = function (editLayer, fieldId) {
     var obj = editLayer.toGeoJSON();
     var text = JSON.stringify(obj);
     $('#' + fieldId).val(text);
-  }
+  };
 
-  function checkFeatureLimit(editLayer, cardinality) {
+  geofieldWidget.checkFeatureLimit = function (editLayer, cardinality) {
     var featureCount = editLayer.getLayers().length;
     if (featureCount >= cardinality) {
       // Hackish css solution. Leaflet.draw can not handle limits.
@@ -117,6 +121,6 @@
     else {
       $('.leaflet-draw-toolbar-top').removeClass('draw-disabled');
     }
-  }
+  };
 
-}(jQuery));
+})(jQuery);
