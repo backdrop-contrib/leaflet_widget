@@ -31,7 +31,7 @@ Values are stored as GeoJSON in Geofields, so some types (circle,
 circlemarker) are not available. They could get drawn, but they can not get
 saved.
 
-Currently ony "OSM Mapnik" layers are usable as drawing layer. Using
+Currently only "OSM Mapnik" layers are usable as drawing layer. Using
 additional ones provided by the Leaflet More Maps module needs more
 investigation.
 
