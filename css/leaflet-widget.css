@@ -1,0 +1,18 @@
+/**
+ * Widget custom style.
+ */
+.leaflet-draw-toolbar.draw-disabled {
+  position: relative;
+}
+.leaflet-draw-toolbar.draw-disabled::after {
+  content: "";
+  display: block;
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+}
+.leaflet-draw-toolbar.draw-disabled a {
+  background-color: #f4f4f4;
+}
