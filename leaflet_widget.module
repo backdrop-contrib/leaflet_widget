@@ -257,10 +257,9 @@ function leaflet_widget_library_info() {
   $libraries_path = backdrop_get_path('module', 'leaflet_widget') . '/libraries';
 
   $libraries['Leaflet.draw'] = array(
-    'name' => 'Leaflet Draw Library',
     'title' => t('Leaflet Draw Library'),
     'version' => '0.4.14',
-    'vendor url' => 'https://github.com/Leaflet/Leaflet.draw',
+    'website' => 'https://github.com/Leaflet/Leaflet.draw',
     'js' => array(
       $libraries_path . '/Leaflet.draw/dist/leaflet.draw-src.js' => array(
         'type' => 'file',
