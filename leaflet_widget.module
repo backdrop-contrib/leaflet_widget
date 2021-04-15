@@ -123,20 +123,8 @@ function leaflet_widget_field_widget_form(&$form, &$form_state, $field, $instanc
     case 'leaflet_widget_widget':
       $id = 'leaflet-widget_' . backdrop_html_id(str_replace('_', '-', $instance['field_name']));
       $class = 'leaflet-widget';
-      // @todo Clean up this settings mess, separate map, layer and widget
-      // options properly.
       $style = 'height: ' . $settings['map']['height'] . 'px;';
-
-      $settings['map']['widget'] = array();
-      $settings['map']['widget']['attach'] = "$id-input";
-      $settings['map']['widget']['multiple'] = FALSE;
-      $settings['map']['widget']['autoCenter'] = $settings['map']['auto_center'];
-      if ($field['cardinality'] != 1) {
-        $settings['map']['widget']['multiple'] = TRUE;
-        // Leaflet.widget treats multiple == true && !cardinality as
-        // 'unlimited'.
-        $settings['map']['widget']['cardinality'] = $field['cardinality'] > 0 ? $field['cardinality'] : 0;
-      }
+      $input_id = $id . '-input';
 
       // Provide container markup for map form element.
       $container = "<div id=\"$id\" class=\"$class\" style=\"$style\"></div>";
@@ -163,16 +151,35 @@ function leaflet_widget_field_widget_form(&$form, &$form_state, $field, $instanc
         '#description' => check_plain($instance['description']),
         '#default_value' => backdrop_json_encode($collection),
         '#required' => $instance['required'],
+        '#attributes' => array('id' => $input_id),
       );
 
-      $element['geom']['#attributes']['id'] = $settings['map']['widget']['attach'];
+      // Convert field settings to Javascript settings.
+      $widget_settings = array();
+      $widget_settings['widget'] = array(
+        'cardinality' => $field['cardinality'],
+        'autoCenter' => $settings['map']['auto_center'],
+      );
+      $widget_settings['map_options'] = array(
+        'center' => array(
+          0 => $settings['map']['center']['lat'],
+          1 => $settings['map']['center']['lng'],
+        ),
+        'zoom' => $settings['map']['zoom'],
+      );
+      // @todo Other map types need to set subdomain and attribution.
+      $widget_settings['layer'] = array(
+        0 => $settings['map']['base_url'],
+        1 => array(
+          'attribution' => '<a href="https://www.openstreetmap.org/copyright" target="_blank">© OpenStreetMap </a> contributors',
+        ),
+      );
 
       $element['#attached']['library'][] = array('leaflet_widget', 'Leaflet.draw');
       $element['#attached']['js'][] = backdrop_get_path('module', 'leaflet_widget') . '/js/leaflet-widget.js';
-      // Settings and geo-data are passed to the widget keyed by field id.
       $element['#attached']['js'][] = array(
         'type' => 'setting',
-        'data' => array('leaflet_widget_widget' => array($id => $settings)),
+        'data' => array('leaflet_geofield_widget' => array($id => $widget_settings)),
       );
       $element['#attached']['css'][] = backdrop_get_path('module', 'leaflet_widget') . '/css/leaflet-widget.css';
 

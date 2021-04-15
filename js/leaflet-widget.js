@@ -8,17 +8,19 @@
     attach: function (context, settings) {
 
       $('.leaflet-widget').once().each(function (i, item) {
+
         var id = $(item).attr('id'),
           inputId = id + '-input',
-          options = Backdrop.settings.leaflet_widget_widget[id],
-          widgetSettings = options.map.widget;
+          itemSettings = settings.leaflet_geofield_widget[id],
+          cardinality = itemSettings.widget.cardinality;
 
-        L.Util.extend(options.map, {
-          layers: [L.tileLayer(options.map.base_url)]
+        // Suppress default topleft zoomControl, put it topright later.
+        itemSettings.map_options.zoomControl = false;
+        L.Util.extend(itemSettings.map_options, {
+          layers: [L.tileLayer(itemSettings.layer[0], itemSettings.layer[1])]
         });
+        var map = new L.Map(id, itemSettings.map_options);
 
-        options.map.zoomControl = false;
-        var map = new L.Map(id, options.map);
         L.control.zoom({
           position: 'topright'
         }).addTo(map);
@@ -28,14 +30,21 @@
         // Load existing features.
         var existingPoints = $('#' + inputId).val();
         var data = JSON.parse(existingPoints);
-        L.geoJson(data, {
+        var features = new L.geoJson(data, {
           onEachFeature: function (feature, layer) {
-            // Leaflet can add nested groups to featureGroups, but then they
-            // aren't editable.
+            // Add features one by one, so they are editable.
             geofieldWidget.addLayersUnnested(layer, editableItems);
           }
-        }).addTo(map);
+        });
 
+        // Center on existing items, overrides default center.
+        if (itemSettings.widget.autoCenter == 1 && editableItems.getLayers().length > 0) {
+          if (features.getBounds !== undefined && typeof features.getBounds === 'function') {
+            map.fitBounds(features.getBounds());
+          }
+        }
+
+        features.addTo(map);
         // We have to turn off circle and circlemarker, as we work with GeoJSON
         // and these types are not in the spec. Leaflet would convert them to
         // regular markers.
@@ -57,7 +66,7 @@
             circlemarker: false
           }
         }));
-        geofieldWidget.checkFeatureLimit(editableItems, widgetSettings.cardinality);
+        geofieldWidget.checkFeatureLimit(editableItems, cardinality);
 
         // Capture Leaflet.draw events (constants) to update map and textarea.
         map.on(L.Draw.Event.CREATED, function (event) {
@@ -66,8 +75,8 @@
 
           geofieldWidget.writeToField(editableItems, inputId);
 
-          if (widgetSettings.cardinality > 0) {
-            geofieldWidget.checkFeatureLimit(editableItems, widgetSettings.cardinality);
+          if (cardinality > 0) {
+            geofieldWidget.checkFeatureLimit(editableItems, cardinality);
           }
         });
 
@@ -78,8 +87,8 @@
         map.on(L.Draw.Event.DELETESTOP, function (event) {
           geofieldWidget.writeToField(editableItems, inputId);
 
-          if (widgetSettings.cardinality > 0) {
-            geofieldWidget.checkFeatureLimit(editableItems, widgetSettings.cardinality);
+          if (cardinality > 0) {
+            geofieldWidget.checkFeatureLimit(editableItems, cardinality);
           }
         });
 
