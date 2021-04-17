@@ -65,7 +65,9 @@
             circlemarker: false
           }
         }));
-        geofieldWidget.checkFeatureLimit(editableItems, cardinality);
+        if (cardinality > 0) {
+          geofieldWidget.checkFeatureLimit(editableItems, cardinality);
+        }
 
         // Capture Leaflet.draw events (constants) to update map and textarea.
         map.on(L.Draw.Event.CREATED, function (event) {
