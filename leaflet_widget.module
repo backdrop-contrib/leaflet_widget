@@ -12,14 +12,11 @@ function leaflet_widget_field_widget_info() {
 
   $widgets['leaflet_widget_widget'] = array(
     'label' => 'Leaflet.widget',
-    'description' => t('Provides a map powered by Leaflet and Leaflet.widget.'),
+    'description' => t('Provides a map powered by Leaflet and Leaflet.draw.'),
     'field types' => array('geofield'),
     'settings' => array(
       'map' => array(
-        // FIXME that's a layer setting and it's mostly useless without the
-        // "subdomain" setting.
-        // The attribution setting would be required, too.
-        'base_url' => '//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+        'base_layer' => 'osm_mapnik_base',
         'center' => array(
           'lat' => 0.0,
           'lng' => 0.0,
@@ -51,11 +48,11 @@ function leaflet_widget_field_widget_settings_form($field, $instance) {
         '#type' => 'fieldset',
         '#title' => t('Default map settings'),
       );
-      $form['map']['base_url'] = array(
+      $form['map']['base_layer'] = array(
         '#type' => 'select',
         '#title' => t('Leaflet.draw widget settings'),
-        '#default_value' => $settings['map']['base_url'],
-        '#options' => leaflet_widget_base_layers(),
+        '#default_value' => !empty($settings['map']['base_layer']) ? $settings['map']['base_layer'] : 'osm_mapnik_base',
+        '#options' => leaflet_widget_base_layers_form_options(),
       );
       $form['map']['center'] = array(
         '#type' => 'fieldset',
@@ -167,12 +164,11 @@ function leaflet_widget_field_widget_form(&$form, &$form_state, $field, $instanc
         ),
         'zoom' => $settings['map']['zoom'],
       );
-      // @todo Other map types need to set subdomain and attribution.
+
+      $layer_settings = leaflet_widget_get_layer_setting($settings['map']['base_layer']);
       $widget_settings['layer'] = array(
-        0 => $settings['map']['base_url'],
-        1 => array(
-          'attribution' => '<a href="https://www.openstreetmap.org/copyright" target="_blank">© OpenStreetMap </a> contributors',
-        ),
+        0 => $layer_settings['url_template'],
+        1 => $layer_settings['layer_options'],
       );
 
       $element['#attached']['library'][] = array('leaflet_widget', 'Leaflet.draw');
@@ -315,7 +311,6 @@ function leaflet_widget_geojson_feature_collection($features) {
  *   Returns a geoJSON feature or FALSE on failure.
  */
 function leaflet_widget_geojson_feature($geom, $properties = array(), $geom_type = 'wkt') {
-  // @todo
   module_load_include('inc', 'geofield', 'libraries/geophp/geoPHP');
   $geometry = geoPHP::load($geom, $geom_type);
   // Avoid notice on error.
@@ -334,9 +329,47 @@ function leaflet_widget_geojson_feature($geom, $properties = array(), $geom_type
  * Implements hook_leaflet_widget_base_layers().
  */
 function leaflet_widget_leaflet_widget_base_layers() {
-  return array(
-    'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png' => 'OSM Mapnik',
+  $layertypes = array(
+    'osm_mapnik_base' => array(
+      'label' => t('OSM Mapnik'),
+      'url_template' => 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+      'layer_options' => array(
+        'attribution' => '<a href="https://www.openstreetmap.org/copyright" target="_blank">© OpenStreetMap </a> contributors',
+      ),
+    ),
   );
+
+  return $layertypes;
+}
+
+/**
+ * Helper function that returns available base layers usable as option list.
+ */
+function leaflet_widget_base_layers_form_options() {
+  $form_options = array();
+  $available = leaflet_widget_base_layers();
+  foreach ($available as $machine_name => $options) {
+    $form_options[$machine_name] = $options['label'];
+  }
+  return $form_options;
+}
+
+/**
+ * Helper function to retrieve layer settings by name.
+ *
+ * @param string $layer_name
+ *   The name of the layer as defined in leaflet_widget_base_layers().
+ *
+ * @return array
+ *   Array of layer settings.
+ */
+function leaflet_widget_get_layer_setting($layer_name) {
+  $available = leaflet_widget_base_layers();
+  if (isset($available[$layer_name])) {
+    return $available[$layer_name];
+  }
+  // Fallback if layer definition is missing.
+  return $available['osm_mapnik_base'];
 }
 
 /**
@@ -344,7 +377,6 @@ function leaflet_widget_leaflet_widget_base_layers() {
  *
  * Invokes hook_leaflet_widget_base_layers() to allow modules adding additional
  * layers just for the widget.
- * @todo This hook doesn't make much sense, as only few layer types are usable.
  *
  * @return array
  *   A list of leaflet layers to use.
