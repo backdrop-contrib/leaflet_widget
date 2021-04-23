@@ -44,27 +44,11 @@
           }
         }
 
-        // We have to turn off circle and circlemarker, as we work with GeoJSON
-        // and these types are not in the spec. Leaflet would convert them to
-        // regular markers.
-        // Rectrangles turn into polygon, but that's no problem.
-        map.addControl(new L.Control.Draw({
-          position: 'topleft',
-          edit: {
-            featureGroup: editableItems,
-            poly: {
-              allowIntersection: false
-            }
-          },
-          draw: {
-            polygon: {
-              allowIntersection: false,
-              showArea: true
-            },
-            circle: false,
-            circlemarker: false
-          }
-        }));
+        // Create and add the draw toolbar based on field widget settings.
+        var drawControlSetup = geofieldWidget.assembleToolbar(itemSettings.widget.featureTypes);
+        drawControlSetup.edit.featureGroup = editableItems;
+        map.addControl(new L.Control.Draw(drawControlSetup));
+
         if (cardinality > 0) {
           geofieldWidget.checkFeatureLimit(editableItems, cardinality);
         }
@@ -131,6 +115,49 @@
     else {
       $('.leaflet-draw-toolbar-top').removeClass('draw-disabled');
     }
+  };
+
+  geofieldWidget.assembleToolbar = function (availableTypes) {
+    // We have to turn off circle and circlemarker, as we work with GeoJSON
+    // and these types are not in the spec. Leaflet would convert them to
+    // regular markers.
+    // Rectrangles turn into polygon, but that's no problem.
+    var allTypes = ['marker', 'polyline', 'polygon', 'rectangle'];
+    var toolbarSetup = {
+      position: 'topleft',
+      edit: {
+        featureGroup: false,
+        poly: {
+          allowIntersection: false
+        }
+      },
+      draw: {
+        circle: false,
+        circlemarker: false
+      }
+    };
+
+    for (var i = 0; i < allTypes.length; i++) {
+      var currentType = allTypes[i];
+      if (availableTypes.hasOwnProperty(currentType) === false) {
+        toolbarSetup.draw[currentType] = false;
+      }
+      else {
+        if (currentType == 'polygon') {
+          toolbarSetup.draw['polygon'] = {
+            allowIntersection: false,
+            showArea: true
+          };
+        }
+        if (currentType == 'polyline') {
+          toolbarSetup.draw['polyline'] = {
+            allowIntersection: false
+          };
+        }
+      }
+    }
+
+    return toolbarSetup;
   };
 
 })(jQuery);

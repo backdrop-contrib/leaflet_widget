@@ -26,6 +26,12 @@ function leaflet_widget_field_widget_info() {
         'auto_center' => TRUE,
         'zoom' => 10,
         'height' => 400,
+        'feature_types' => array(
+          'marker' => 'marker',
+          'polyline' => 'polyline',
+          'polygon' => 'polygon',
+          'rectangle' => 'rectangle',
+        ),
       ),
     ),
     'behaviors' => array(
@@ -115,6 +121,21 @@ function leaflet_widget_field_widget_settings_form($field, $instance) {
         '#required' => TRUE,
         '#description' => t('Height of the map container in pixels.'),
       );
+      $feature_types = array(
+        'marker' => t('Marker'),
+        'polyline' => t('Polyline'),
+        'polygon' => t('Polygon'),
+        'rectangle' => t('Rectangle'),
+      );
+      $feature_default_types = backdrop_map_assoc(array_keys($feature_types));
+      $form['map']['feature_types'] = array(
+        '#type' => 'checkboxes',
+        '#title' => t('Available feature types'),
+        '#options' => $feature_types,
+        '#default_value' => isset($settings['map']['feature_types']) ? $settings['map']['feature_types'] : $feature_default_types,
+        '#description' => t('Which types of shapes are available in the draw toolbar.'),
+        '#required' => TRUE,
+      );
 
       break;
   }
@@ -178,6 +199,7 @@ function leaflet_widget_field_widget_form(&$form, &$form_state, $field, $instanc
       $widget_settings['widget'] = array(
         'cardinality' => $field['cardinality'],
         'autoCenter' => $settings['map']['auto_center'],
+        'featureTypes' => array_filter($settings['map']['feature_types']),
       );
       $widget_settings['map_options'] = array(
         'center' => array(
