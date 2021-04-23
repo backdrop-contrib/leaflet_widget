@@ -1,23 +1,29 @@
 # Leaflet Widget
 
-**This port is work in progress!**
-
 A [Geofield](https://backdropcms.org/project/geofield) widget that provides a
 Leaflet map widget using the [Leaflet.draw](https://github.com/Leaflet/Leaflet.draw)
 library for adding features.
 
-*Features*
+The library ships with this module, no need for an extra download.
 
-- Create & manage simple geometries: Point, Polyline, Polygon.
-- Delete geometries.
-- Supports single or multi-value Geofields (cardinality).
-- Uses base layers defined by Leaflet module.
+*Leaflet Widget enables you to:*
+
+- Create, edit and delete simple geometries: Point, Polyline, Polygon
+- Configure available geometry types per field
+- Supports single or multi-value Geofields (cardinality)
+- Uses base layers defined by the Leaflet module
+- API for additional base layers
 
 ## Installation
 
 - Install this module using the official 
   [Backdrop CMS instructions](https://backdropcms.org/guide/modules)
+- Add or configure any Geofield to use the widget for input
 
+## Requires
+
+- Leaflet
+- Geofield
 
 ## Issues
 
@@ -33,11 +39,6 @@ saved.
 
 The API of this module has changed compared to Drupal. That was a necessary
 step to make it useful.
-
-## Requires
-
-- Leaflet
-- Geofield
 
 ## Current Maintainers
 
