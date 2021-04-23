@@ -21,6 +21,8 @@ function leaflet_widget_field_widget_info() {
           'lat' => 0.0,
           'lng' => 0.0,
         ),
+        'min_zoom' => 0,
+        'max_zoom' => 21,
         'auto_center' => TRUE,
         'zoom' => 10,
         'height' => 400,
@@ -79,10 +81,29 @@ function leaflet_widget_field_widget_settings_form($field, $instance) {
         '#default_value' => $settings['map']['auto_center'],
       );
       $form['map']['zoom'] = array(
-        '#type' => 'textfield',
+        '#type' => 'number',
         '#title' => t('Default zoom level'),
+        '#min' => '0',
+        '#max' => '21',
         '#default_value' => $settings['map']['zoom'],
         '#required' => TRUE,
+      );
+      $form['map']['min_zoom'] = array(
+        '#type' => 'number',
+        '#title' => t('Minimum zoom level'),
+        '#min' => '0',
+        '#max' => '18',
+        '#default_value' => isset($settings['map']['min_zoom']) ? $settings['map']['min_zoom'] : '0',
+        '#required' => TRUE,
+      );
+      $form['map']['max_zoom'] = array(
+        '#type' => 'number',
+        '#title' => t('Maximum zoom level'),
+        '#min' => '4',
+        '#max' => '21',
+        '#default_value' => isset($settings['map']['max_zoom']) ? $settings['map']['max_zoom'] : '21',
+        '#required' => TRUE,
+        '#description' => t('How close you can get in. Consider that not all map types support high values.'),
       );
       $form['map']['height'] = array(
         '#type' => 'number',
@@ -164,6 +185,8 @@ function leaflet_widget_field_widget_form(&$form, &$form_state, $field, $instanc
           1 => $settings['map']['center']['lng'],
         ),
         'zoom' => $settings['map']['zoom'],
+        'minZoom' => $settings['map']['min_zoom'],
+        'maxZoom' => $settings['map']['max_zoom'],
       );
 
       $layer_settings = leaflet_widget_get_layer_setting($settings['map']['base_layer']);
