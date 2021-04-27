@@ -21,8 +21,8 @@ function leaflet_widget_field_widget_info() {
           'lat' => 0.0,
           'lng' => 0.0,
         ),
-        'min_zoom' => 0,
-        'max_zoom' => 21,
+        'min_zoom' => 2,
+        'max_zoom' => 18,
         'auto_center' => TRUE,
         'zoom' => 10,
         'height' => 400,
@@ -99,7 +99,7 @@ function leaflet_widget_field_widget_settings_form($field, $instance) {
         '#title' => t('Minimum zoom level'),
         '#min' => '0',
         '#max' => '18',
-        '#default_value' => isset($settings['map']['min_zoom']) ? $settings['map']['min_zoom'] : '0',
+        '#default_value' => isset($settings['map']['min_zoom']) ? $settings['map']['min_zoom'] : '2',
         '#required' => TRUE,
       );
       $form['map']['max_zoom'] = array(
@@ -107,7 +107,7 @@ function leaflet_widget_field_widget_settings_form($field, $instance) {
         '#title' => t('Maximum zoom level'),
         '#min' => '4',
         '#max' => '21',
-        '#default_value' => isset($settings['map']['max_zoom']) ? $settings['map']['max_zoom'] : '21',
+        '#default_value' => isset($settings['map']['max_zoom']) ? $settings['map']['max_zoom'] : '18',
         '#required' => TRUE,
         '#description' => t('How close you can get in. Consider that not all map types support high values.'),
       );
