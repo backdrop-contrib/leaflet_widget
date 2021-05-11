@@ -68,6 +68,14 @@ function leaflet_widget_field_widget_settings_form($field, $instance) {
         '#collapsible' => TRUE,
         '#title' => t('Default map center'),
       );
+      if (module_exists('geoip_tokens')) {
+        $form['map']['center']['geoip'] = array(
+          '#type' => 'checkbox',
+          '#title' => t('Automatically center based on GeoIP'),
+          '#default_value' => isset($settings['map']['center']['geoip']) ? $settings['map']['center']['geoip'] : FALSE,
+          '#description' => t('If checked, below values act as a fallback, if coordinates could not be determined.'),
+        );
+      }
       $form['map']['center']['lat'] = array(
         '#type' => 'textfield',
         '#title' => t('Latitude'),
@@ -210,6 +218,15 @@ function leaflet_widget_field_widget_form(&$form, &$form_state, $field, $instanc
         'minZoom' => $settings['map']['min_zoom'],
         'maxZoom' => $settings['map']['max_zoom'],
       );
+      if (module_exists('geoip_tokens') && !empty($settings['map']['center']['geoip'])) {
+        $coords = geoip_tokens_get_geoip_info('latlon');
+        // Coordinates are numeric and could also be 0. But these are also the
+        // fallback values from module geoip_tokens, if the request failed.
+        if (($coords['latitude'] + $coords['longitude']) !== 0) {
+          $widget_settings['map_options']['center'][0] = $coords['latitude'];
+          $widget_settings['map_options']['center'][1] = $coords['longitude'];
+        }
+      }
 
       $layer_settings = leaflet_widget_get_layer_setting($settings['map']['base_layer']);
       $widget_settings['layer'] = array(
