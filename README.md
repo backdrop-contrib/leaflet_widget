@@ -14,6 +14,8 @@ The library ships with this module, no need for an extra download.
 - Uses base layers defined by the Leaflet module
 - API for additional base layers
 
+![Widget screenshot](https://raw.githubusercontent.com/backdrop-contrib/leaflet_widget/1.x-1.x/screenshots/widget.jpg)
+
 ## Installation
 
 - Install this module using the official 
