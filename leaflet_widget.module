@@ -307,20 +307,24 @@ function leaflet_widget_process_geojson($geojson) {
  * Implements hook_library_info().
  */
 function leaflet_widget_library_info() {
-  $libraries_path = backdrop_get_path('module', 'leaflet_widget') . '/libraries';
+  $path = backdrop_get_path('module', 'leaflet_widget');
 
   $libraries['Leaflet.draw'] = array(
     'title' => t('Leaflet Draw Library'),
     'version' => '0.4.14',
     'website' => 'https://github.com/Leaflet/Leaflet.draw',
     'js' => array(
-      $libraries_path . '/Leaflet.draw/dist/leaflet.draw-src.js' => array(
+      $path . '/libraries/Leaflet.draw/dist/leaflet.draw.js' => array(
+        'type' => 'file',
+        'group' => JS_LIBRARY,
+      ),
+      $path . '/js/leaflet-draw-compat.js' => array(
         'type' => 'file',
         'group' => JS_LIBRARY,
       ),
     ),
     'css' => array(
-      $libraries_path . '/Leaflet.draw/dist/leaflet.draw.css' => array(
+      $path . '/libraries/Leaflet.draw/dist/leaflet.draw.css' => array(
         'type' => 'file',
         'media' => 'all',
       ),
