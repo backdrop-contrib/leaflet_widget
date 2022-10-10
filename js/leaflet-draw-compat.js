@@ -9,7 +9,7 @@
 L.Edit.Poly.include({
   _defaultShape: function () {
     if (!L.LineUtil.isFlat) {
-      return this._latlngs;
+      return this._poly._latlngs;
     }
     return L.LineUtil.isFlat(this._poly._latlngs) ? this._poly._latlngs : this._poly._latlngs[0];
   }
@@ -18,7 +18,7 @@ L.Edit.Poly.include({
 L.Edit.PolyVerticesEdit.include({
   _defaultShape: function () {
     if (!L.LineUtil.isFlat) {
-      return this._poly._latlngs;
+      return this._latlngs;
     }
     return L.LineUtil.isFlat(this._latlngs) ? this._latlngs : this._latlngs[0];
   }
