@@ -30,10 +30,16 @@
         // Load existing features.
         var existingPoints = $('#' + inputId).val();
         var data = JSON.parse(existingPoints);
-        var features = new L.geoJson(data, {
+        var features = new L.geoJSON(data, {
           onEachFeature: function (feature, layer) {
-            // Add features one by one, so they are editable.
-            geofieldWidget.addLayersUnnested(layer, editableItems);
+            // Add features one by one, so they are editable individually.
+            var featureType = feature.geometry.type;
+            if (featureType === 'MultiPolygon' || featureType === 'MultiLineString') {
+              geofieldWidget.addFeaturesSplit(feature, editableItems, featureType);
+            }
+            else {
+              geofieldWidget.addLayersUnnested(layer, editableItems);
+            }
           }
         });
 
@@ -99,6 +105,34 @@
       targetGroup.addLayer(sourceLayer);
     }
   };
+
+  geofieldWidget.addFeaturesSplit = function (feature, editableItems, featureType) {
+    for (let i = 0; i < feature.geometry.coordinates.length; i++) {
+      // Geojson spec dictates lon/lat, but Leaflet uses lat/lon.
+      var coords = [];
+      if (featureType === 'MultiPolygon') {
+        for (let j = 0; j < feature.geometry.coordinates[i][0].length; j++) {
+          var reversed = feature.geometry.coordinates[i][0][j].reverse();
+          coords.push(reversed);
+        }
+      }
+      else {
+        for (let j = 0; j < feature.geometry.coordinates[i].length; j++) {
+          var reversed = feature.geometry.coordinates[i][j].reverse();
+          coords.push(reversed);
+        }
+      }
+      var f;
+      if (featureType === 'MultiPolygon') {
+        f = new L.Polygon(coords);
+      }
+      else {
+        f = new L.Polyline(coords);
+      }
+      f.addTo(editableItems);
+    }
+
+  }
 
   geofieldWidget.writeToField = function (editLayer, fieldId) {
     var obj = editLayer.toGeoJSON();
