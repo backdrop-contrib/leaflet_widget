@@ -65,14 +65,17 @@
               let mapLayer = Backdrop.leafletEditableItems[item.id].editable;
               let cardinality = Backdrop.leafletEditableItems[item.id].cardinality;
               if (mapLayer.getLayers().length >= cardinality) {
-                alert('nope already full');// hm... disable buttons in advance?
+                alert('nope already full');// @todo hm... disable buttons in advance?
                 return;
               }
               let coords = JSON.parse(event.target.dataset.coords);
               let latLng = L.latLng(coords.lat, coords.lon);
               mapLayer.addLayer(L.marker(latLng));
+              // We ignore autoCenter setting here to prevent UX issues.
               let bounds = mapLayer.getBounds();
-              mapLayer._map.fitBounds(bounds);// @todo trigger save to field. how??
+              mapLayer._map.fitBounds(bounds);
+              const customEv = new Event('mapFeatureChange');
+              document.getElementById(item.id).dispatchEvent(customEv);
             });
           });
         });

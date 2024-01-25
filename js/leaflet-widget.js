@@ -92,6 +92,15 @@
           }
         });
 
+        // Listen to "external" events.
+        document.getElementById(id).addEventListener('mapFeatureChange', function (event) {
+          geofieldWidget.writeToField(editableItems, inputId);
+
+          if (cardinality > 0) {
+            geofieldWidget.checkFeatureLimit(editableItems, cardinality, id);
+          }
+        });
+
         // Serialize data and set input value on submit.
         $(item).parents('form').on('submit', function() {
           geofieldWidget.writeToField(editableItems, inputId);
