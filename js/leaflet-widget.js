@@ -1,4 +1,4 @@
-(function ($) {
+(function (Backdrop, $) {
 
   'use strict';
 
@@ -7,7 +7,7 @@
   Backdrop.behaviors.geofield_widget = {
     attach: function (context, settings) {
 
-      $('.leaflet-widget').once().each(function (i, item) {
+      $('.leaflet-widget').once('leaflet-widget').each( function (i, item) {
 
         var id = $(item).attr('id'),
           inputId = id + '-input',
@@ -26,6 +26,15 @@
         }).addTo(map);
 
         var editableItems = L.featureGroup().addTo(map);
+
+        // Expose editable group to global space.
+        if (typeof Backdrop.leafletEditableItems == 'undefined') {
+          Backdrop.leafletEditableItems = {};
+        }
+        Backdrop.leafletEditableItems[id] = {
+          editable: editableItems,
+          cardinality: cardinality
+        }
 
         // Load existing features.
         var existingPoints = $('#' + inputId).val();
@@ -84,11 +93,22 @@
         });
 
         // Serialize data and set input value on submit.
-        $(item).parents('form').bind('submit', function() {
+        $(item).parents('form').on('submit', function() {
           geofieldWidget.writeToField(editableItems, inputId);
         });
 
       });
+    },
+    detach: function (context, settings, trigger) {
+      if (trigger == 'serialize') {
+        $('.leaflet-widget').each( function (i, item) {
+          if (Backdrop.leafletEditableItems[item.id]) {
+            let editable = Backdrop.leafletEditableItems[item.id]['editable'];
+            let inputId = item.id + '-input';
+            geofieldWidget.writeToField(editable, inputId);
+          }
+        });
+      }
     }
   };
 
@@ -194,4 +214,4 @@
     return toolbarSetup;
   };
 
-})(jQuery);
+})(Backdrop, jQuery);
