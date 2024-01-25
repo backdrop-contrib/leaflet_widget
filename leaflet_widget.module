@@ -239,17 +239,7 @@ function leaflet_widget_field_widget_form(&$form, &$form_state, $field, $instanc
       // Some dummy code...
       if (1 == 1) {
         $element['#attached']['js'][] = backdrop_get_path('module', 'leaflet_widget') . '/js/leaflet-widget-geocode.js';
-        $element['#attached']['js'][] = array(
-          'type' => 'setting',
-          'data' => array('leaflet_geofield_widget_geocode' => array(
-            $id => array(
-              //'fromFieldId' => 'edit-field-adresse-und-0-value',
-              'fromFieldId' => "$id-geoinput",
-            ),
-          )),
-        );
-        // experimental... either field or direct input.
-        // button text must be different then.
+        // @todo make this a proper accessible form.
         $markup = '<div id="' . $id . '-geocode" class="leaflet-widget-geocode">';
         $markup .= '<input id="'  . $id . '-geoinput" type="text">';
         $markup .= '<button class="button geocode-button" type="button">Search</button>';

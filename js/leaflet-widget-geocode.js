@@ -5,15 +5,12 @@
   Backdrop.behaviors.geofieldWidgetGeocode = {
     attach: function (context, settings) {
       $('.leaflet-widget').once('geofield-widget-geocode').each( function (i, item) {
-        if (typeof settings.leaflet_geofield_widget_geocode[item.id] == 'undefined') {
-          return;
-        }
-        let options = settings.leaflet_geofield_widget_geocode[item.id];
+        // @todo run independent loop? use data object instead?
         let mySelector = '#' + item.id + '-geocode';
 
         $(mySelector + ' button').on('click', function (ev) {
           // @todo check cardinality and disable/hide stuff.
-          let searchText = $('#' + options.fromFieldId).val();
+          let searchText = $('#' + item.id + '-geoinput').val();
           if (!searchText) {
             $(mySelector + ' .message').html('The field to get the value from is empty');// @todo translate
             return;
@@ -59,15 +56,23 @@
           });
           jqxhr.always( function () {
             $(mySelector + ' .message').html(message);
+            // this should go to "success" only.
             $(mySelector + ' .message button').on('click', function (event) {
-              console.log(event.target.dataset.coords);
+              event.preventDefault();
+              if (typeof Backdrop.leafletEditableItems[item.id] == 'undefined') {
+                return;
+              }
+              let mapLayer = Backdrop.leafletEditableItems[item.id].editable;
+              let cardinality = Backdrop.leafletEditableItems[item.id].cardinality;
+              if (mapLayer.getLayers().length >= cardinality) {
+                alert('nope already full');// hm... disable buttons in advance?
+                return;
+              }
               let coords = JSON.parse(event.target.dataset.coords);
-              let mapLayer = Backdrop.LeafletMaps[item.id].editGroup;
               let latLng = L.latLng(coords.lat, coords.lon);
               mapLayer.addLayer(L.marker(latLng));
               let bounds = mapLayer.getBounds();
-              mapLayer._map.fitBounds(bounds);// @todo save to field, check limits
-              event.preventDefault();
+              mapLayer._map.fitBounds(bounds);// @todo trigger save to field. how??
             });
           });
         });
