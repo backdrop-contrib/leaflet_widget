@@ -65,7 +65,7 @@
         map.addControl(new L.Control.Draw(drawControlSetup));
 
         if (cardinality > 0) {
-          geofieldWidget.checkFeatureLimit(editableItems, cardinality);
+          geofieldWidget.checkFeatureLimit(editableItems, cardinality, id);
         }
 
         // Capture Leaflet.draw events (constants) to update map and textarea.
@@ -76,7 +76,7 @@
           geofieldWidget.writeToField(editableItems, inputId);
 
           if (cardinality > 0) {
-            geofieldWidget.checkFeatureLimit(editableItems, cardinality);
+            geofieldWidget.checkFeatureLimit(editableItems, cardinality, id);
           }
         });
 
@@ -88,7 +88,7 @@
           geofieldWidget.writeToField(editableItems, inputId);
 
           if (cardinality > 0) {
-            geofieldWidget.checkFeatureLimit(editableItems, cardinality);
+            geofieldWidget.checkFeatureLimit(editableItems, cardinality, id);
           }
         });
 
@@ -160,14 +160,14 @@
     $('#' + fieldId).val(text);
   };
 
-  geofieldWidget.checkFeatureLimit = function (editLayer, cardinality) {
+  geofieldWidget.checkFeatureLimit = function (editLayer, cardinality, itemId) {
     var featureCount = editLayer.getLayers().length;
     if (featureCount >= cardinality) {
       // Hackish css solution. Leaflet.draw can not handle limits.
-      $('.leaflet-draw-toolbar-top').addClass('draw-disabled');
+      $('#' + itemId + ' .leaflet-draw-toolbar-top').addClass('draw-disabled');
     }
     else {
-      $('.leaflet-draw-toolbar-top').removeClass('draw-disabled');
+      $('#' + itemId + ' .leaflet-draw-toolbar-top').removeClass('draw-disabled');
     }
   };
 
