@@ -59,6 +59,15 @@
           }
         }
 
+        // Export to global space.
+        if (typeof Backdrop.LeafletMaps == 'undefined') {
+          Backdrop.LeafletMaps = {};
+        }
+        Backdrop.LeafletMaps[id] = {
+          editGroup: editableItems,
+          cardinality: cardinality
+        }
+
         // Create and add the draw toolbar based on field widget settings.
         var drawControlSetup = geofieldWidget.assembleToolbar(itemSettings.widget.featureTypes);
         drawControlSetup.edit.featureGroup = editableItems;
