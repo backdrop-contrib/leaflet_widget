@@ -236,17 +236,12 @@ function leaflet_widget_field_widget_form(&$form, &$form_state, $field, $instanc
       );
       $element['#attached']['css'][] = backdrop_get_path('module', 'leaflet_widget') . '/css/leaflet-widget.css';
 
-      // Some dummy code...
+      // Some dummy code... check for widget setting...
       if (1 == 1) {
         $element['#attached']['js'][] = backdrop_get_path('module', 'leaflet_widget') . '/js/leaflet-widget-geocode.js';
-        // @todo make this a proper accessible form.
-        $markup = '<div id="' . $id . '-geocode" class="leaflet-widget-geocode">';
-        $markup .= '<input id="'  . $id . '-geoinput" type="text">';
-        $markup .= '<button class="button geocode-button" type="button">Search</button>';
-        $markup .= '<p class="message"></p></div>';
-        $element['foobar'] = array(
+        $element['search_widget'] = array(
           '#type' => 'markup',
-          '#markup' => $markup,
+          '#markup' => _leaflet_widget_geocode_widget($id),
           '#weight' => -1,
         );
       }
@@ -255,6 +250,51 @@ function leaflet_widget_field_widget_form(&$form, &$form_state, $field, $instanc
   }
 
   return $element;
+}
+
+/**
+ * Custom callback that returns markup for the geocoding widget.
+ *
+ * We do not need this in the form_state, only the markup.
+ *
+ * @param string $id
+ *   Map container HTML id.
+ * @return
+ *   Rendered markup.
+ */
+function _leaflet_widget_geocode_widget($id) {
+  $items = array();
+  $items['wrap'] = array(
+    '#type' => 'container',
+    '#attributes' => array(
+      'class' => array('leaflet-widget-geocode'),
+      'data-map-id' => $id,
+      'id' => $id . '-geocode',
+    ),
+  );
+  $items['wrap']['search'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Search'),
+    '#title_display' => 'invisible',
+    '#size' => 45,
+    '#id' => $id . '-geoinput',
+    '#attributes' => array(
+      'placeholder' => t('Location name or address'),
+    ),
+  );
+  $items['wrap']['submit'] = array(
+    '#type' => 'markup',
+    '#markup' => '<button class="button geocode-button" type="button">' . t('Go') . '</button>',
+  );
+  $items['wrap']['message'] = array(
+    '#type' => 'markup',
+    '#markup' => '<div class="message"></div>',
+  );
+  $items['wrap']['credits'] = array(
+    '#type' => 'markup',
+    '#markup' => '<div class="credits">Location search powered by <a href="https://nominatim.org/">Nominatim</a></div>',
+  );
+  return backdrop_render($items);
 }
 
 /**

@@ -16,3 +16,54 @@
 .leaflet-draw-toolbar.draw-disabled a {
   background-color: #f4f4f4;
 }
+/* Geocoding widget */
+.leaflet-widget-geocode .form-item {
+  display: inline-block;
+  margin: 0;
+}
+.leaflet-widget-geocode .geocode-button {
+  margin: 0;
+}
+.leaflet-widget-geocode .message {
+  padding: 10px 0 0;
+}
+.leaflet-widget-geocode .message.waiting {
+  background: transparent url("../img/await.gif") 0 0 no-repeat;
+}
+.leaflet-widget-geocode .message ul {
+  list-style-type: none;
+  padding: 0;
+  margin: .5em 0;
+}
+.leaflet-widget-geocode .message li {
+  padding: .5rem;
+  border: 1px solid #ccc;
+  margin: 0 0 -1px;
+}
+.leaflet-widget-geocode .message li:hover {
+  background-color: #79f4011a;
+}
+.leaflet-widget-geocode .button-marker {
+  float: right;
+  width: 2.5rem;
+  height: 2.5rem;
+  margin: .2em;
+  padding: 0;
+  overflow: hidden;
+  text-indent: -300px;
+  border: none;
+  background: transparent url("../img/marker.svg") center no-repeat;
+  cursor: pointer;
+}
+.leaflet-widget-geocode .button-marker[disabled] {
+  opacity: .8;
+  filter: grayscale(100%);
+}
+.leaflet-widget-geocode .button-marker:focus-visible {
+  outline: 2px solid #1f79c9;
+}
+.leaflet-widget-geocode .credits {
+  font-size: .9em;
+  text-align: right;
+  margin: 0 0 .5em;
+}
