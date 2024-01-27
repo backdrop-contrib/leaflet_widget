@@ -32,6 +32,7 @@ function leaflet_widget_field_widget_info() {
           'polygon' => 'polygon',
           'rectangle' => 'rectangle',
         ),
+        'search_widget' => FALSE,
       ),
     ),
     'behaviors' => array(
@@ -144,6 +145,12 @@ function leaflet_widget_field_widget_settings_form($field, $instance) {
         '#description' => t('Which types of shapes are available in the draw toolbar.'),
         '#required' => TRUE,
       );
+      $form['map']['search_widget'] = array(
+        '#type' => 'checkbox',
+        '#title' => t('Add search widget'),
+        '#default_value' => !empty($settings['map']['search_widget']),
+        '#description' => t('Provde a location search widget above the map, to add markers based on text search results.'),
+      );
 
       break;
   }
@@ -170,6 +177,13 @@ function leaflet_widget_field_widget_form(&$form, &$form_state, $field, $instanc
   switch ($instance['widget']['type']) {
     case 'leaflet_widget_widget':
       $id = 'leaflet-widget_' . backdrop_html_id(str_replace('_', '-', $instance['field_name']));
+      if (!empty($settings['map']['search_widget'])) {
+        $element['#attached']['js'][] = backdrop_get_path('module', 'leaflet_widget') . '/js/leaflet-widget-geocode.js';
+        $element['search_widget'] = array(
+          '#type' => 'markup',
+          '#markup' => _leaflet_widget_geocode_widget($id),
+        );
+      }
       $class = 'leaflet-widget';
       $style = 'height: ' . $settings['map']['height'] . 'px;';
       $input_id = $id . '-input';
@@ -236,16 +250,6 @@ function leaflet_widget_field_widget_form(&$form, &$form_state, $field, $instanc
       );
       $element['#attached']['css'][] = backdrop_get_path('module', 'leaflet_widget') . '/css/leaflet-widget.css';
 
-      // Some dummy code... check for widget setting...
-      if (1 == 1) {
-        $element['#attached']['js'][] = backdrop_get_path('module', 'leaflet_widget') . '/js/leaflet-widget-geocode.js';
-        $element['search_widget'] = array(
-          '#type' => 'markup',
-          '#markup' => _leaflet_widget_geocode_widget($id),
-          '#weight' => -1,
-        );
-      }
-
       break;
   }
 
@@ -284,7 +288,7 @@ function _leaflet_widget_geocode_widget($id) {
   );
   $items['wrap']['submit'] = array(
     '#type' => 'markup',
-    '#markup' => '<button class="button geocode-button" type="button">' . t('Go') . '</button>',
+    '#markup' => '<button class="button geocode-button" type="button">' . t('Search') . '</button>',
   );
   $items['wrap']['message'] = array(
     '#type' => 'markup',

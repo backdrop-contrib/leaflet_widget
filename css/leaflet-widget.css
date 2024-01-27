@@ -28,7 +28,7 @@
   padding: 10px 0 0;
 }
 .leaflet-widget-geocode .message.waiting {
-  background: transparent url("../img/await.gif") 0 0 no-repeat;
+  background: transparent url("../img/await.gif") 0 5px no-repeat;
 }
 .leaflet-widget-geocode .message ul {
   list-style-type: none;
