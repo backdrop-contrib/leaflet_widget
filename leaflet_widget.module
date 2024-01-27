@@ -288,7 +288,7 @@ function _leaflet_widget_geocode_widget($id) {
   );
   $items['wrap']['submit'] = array(
     '#type' => 'markup',
-    '#markup' => '<button class="form-submit geocode-button" type="button">' . t('Search') . '</button>',
+    '#markup' => '<button class="form-submit button-primary geocode-button" type="button">' . t('Search') . '</button>',
   );
   $items['wrap']['message'] = array(
     '#type' => 'markup',
