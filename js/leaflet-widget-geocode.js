@@ -45,12 +45,13 @@
               }
               $(mySelector + ' .message').html(geocodeWidget.buildResultList(data));
 
+              // Unlikely to be missing, but required to insert markers.
+              if (typeof Backdrop.leafletEditableItems[mapId] == 'undefined') {
+                return;
+              }
               // Attach event listener to marker buttons.
               $(mySelector + ' .button-marker').on('click', function (event) {
                 event.preventDefault();
-                if (typeof Backdrop.leafletEditableItems[mapId] == 'undefined') {
-                  return;
-                }
                 geocodeWidget.insertMarker(event.target, mapId);
               })
             })

@@ -176,9 +176,13 @@ function leaflet_widget_field_widget_form(&$form, &$form_state, $field, $instanc
 
   switch ($instance['widget']['type']) {
     case 'leaflet_widget_widget':
+      $module_path = backdrop_get_path('module', 'leaflet_widget');
       $id = 'leaflet-widget_' . backdrop_html_id(str_replace('_', '-', $instance['field_name']));
       if (!empty($settings['map']['search_widget'])) {
-        $element['#attached']['js'][] = backdrop_get_path('module', 'leaflet_widget') . '/js/leaflet-widget-geocode.js';
+        // Make sure, this script gets loaded after the main widget.
+        $element['#attached']['js'][$module_path . '/js/leaflet-widget-geocode.js'] = array(
+          'weight' => 1,
+        );
         $element['search_widget'] = array(
           '#type' => 'markup',
           '#markup' => _leaflet_widget_geocode_widget($id),
@@ -243,12 +247,12 @@ function leaflet_widget_field_widget_form(&$form, &$form_state, $field, $instanc
       );
 
       $element['#attached']['library'][] = array('leaflet_widget', 'Leaflet.draw');
-      $element['#attached']['js'][] = backdrop_get_path('module', 'leaflet_widget') . '/js/leaflet-widget.js';
+      $element['#attached']['js'][] = $module_path . '/js/leaflet-widget.js';
       $element['#attached']['js'][] = array(
         'type' => 'setting',
         'data' => array('leaflet_geofield_widget' => array($id => $widget_settings)),
       );
-      $element['#attached']['css'][] = backdrop_get_path('module', 'leaflet_widget') . '/css/leaflet-widget.css';
+      $element['#attached']['css'][] = $module_path . '/css/leaflet-widget.css';
 
       break;
   }
