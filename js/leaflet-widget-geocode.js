@@ -5,9 +5,9 @@
   Backdrop.behaviors.geofieldWidgetGeocode = {
     attach: function (context, settings) {
       const geocodeWidget = this;
-      $('.leaflet-widget').once('geofield-widget-geocode').each( function (i, item) {
-        // @todo run independent loop? use data object instead?
-        let mySelector = '#' + item.id + '-geocode';
+      $('.leaflet-widget-geocode').once('geofield-widget-geocode').each( function (i, item) {
+        let mySelector = '#' + item.id;
+        let mapId = item.dataset.mapId;
 
         $(mySelector + ' .form-text').on('keypress', function (event) {
           if (event.which == 13) {
@@ -16,7 +16,7 @@
         });
         $(mySelector + ' .geocode-button').on('click', function (ev) {
           ev.preventDefault();
-          let searchText = $('#' + item.id + '-geoinput').val().trim();
+          let searchText = $('#' + mapId + '-geoinput').val().trim();
           if (!searchText) {
             $(mySelector + ' .message').html(Backdrop.t('Add some keywords to search for'));
             return;
@@ -48,10 +48,10 @@
               // Attach event listener to marker buttons.
               $(mySelector + ' .button-marker').on('click', function (event) {
                 event.preventDefault();
-                if (typeof Backdrop.leafletEditableItems[item.id] == 'undefined') {
+                if (typeof Backdrop.leafletEditableItems[mapId] == 'undefined') {
                   return;
                 }
-                geocodeWidget.insertMarker(event.target, item.id);
+                geocodeWidget.insertMarker(event.target, mapId);
               })
             })
             .fail( function () {
