@@ -4,6 +4,7 @@
 
   Backdrop.behaviors.geofieldWidgetGeocode = {
     attach: function (context, settings) {
+      const geocodeWidget = this;
       $('.leaflet-widget').once('geofield-widget-geocode').each( function (i, item) {
         // @todo run independent loop? use data object instead?
         let mySelector = '#' + item.id + '-geocode';
@@ -17,7 +18,7 @@
           ev.preventDefault();
           let searchText = $('#' + item.id + '-geoinput').val().trim();
           if (!searchText) {
-            $(mySelector + ' .message').html('Add some keywords to search for');// @todo translate
+            $(mySelector + ' .message').html(Backdrop.t('Add some keywords to search for'));
             return;
           }
           // Start wait animation.
@@ -25,7 +26,7 @@
 
           // Make sure we only hit this once per second.
           let $button = $(this);
-          $button.attr('disabled', true);
+          $button.attr('disabled', 'disabled');
           setTimeout( function () {
             $button.removeAttr('disabled');
           }, 1000);
@@ -39,10 +40,10 @@
           $.get('https://nominatim.openstreetmap.org/search', params)
             .done( function (data) {
               if (!data.length) {
-                $(mySelector + ' .message').html('Your search yielded no results');// @todo translate
+                $(mySelector + ' .message').html(Backdrop.t('Your search yielded no results'));
                 return;
               }
-              $(mySelector + ' .message').html(Backdrop.behaviors.geofieldWidgetGeocode.buildResultList(data));
+              $(mySelector + ' .message').html(geocodeWidget.buildResultList(data));
 
               // Attach event listener to marker buttons.
               $(mySelector + ' .button-marker').on('click', function (event) {
@@ -50,7 +51,7 @@
                 if (typeof Backdrop.leafletEditableItems[item.id] == 'undefined') {
                   return;
                 }
-                Backdrop.behaviors.geofieldWidgetGeocode.insertMarker(event.target, item.id);
+                geocodeWidget.insertMarker(event.target, item.id);
               })
             })
             .fail( function () {
@@ -60,37 +61,45 @@
               // Remove wait animation.
               $(mySelector + ' .message').removeClass('waiting');
             });
-        });// close on-click
-      });// close once-each
+        });
+      });
     },
+    /**
+     * Create markup for the result list.
+     *
+     * @param array data
+     *   Array of one or more search results from GET request.
+     */
     buildResultList: function (data) {
-      let label = Backdrop.t('Insert marker');
       let ulElem = document.createElement('ul');
       for (let i = 0; i < data.length; i++) {
         let liElem = document.createElement('li');
+        liElem.innerText = data[i].display_name + ' ';
         liElem.setAttribute('class', 'clearfix');
-        let text = document.createTextNode(data[i].display_name + ' ');
+
         let insertButton = document.createElement('button');
-        insertButton.setAttribute('class', 'button-marker');
+        let label = Backdrop.t('Insert marker');
+        insertButton.innerText = label;
         insertButton.setAttribute('title', label);
-        let buttonText = document.createTextNode(label);
-        insertButton.appendChild(buttonText);
+        insertButton.setAttribute('class', 'button-marker');
         let coords = {
           lat: data[i].lat,
           lon: data[i].lon
         }
-        insertButton.setAttribute('data-coords', JSON.stringify(coords));// aria attrib
-        liElem.appendChild(text);
+        insertButton.setAttribute('data-coords', JSON.stringify(coords));
         liElem.appendChild(insertButton);
         ulElem.appendChild(liElem);
       }
       return ulElem.outerHTML;
     },
+    /**
+     * Insert a marker into the map or notify if field cardinality reached.
+     */
     insertMarker: function (eventTarget, mapContainerId) {
       let mapLayer = Backdrop.leafletEditableItems[mapContainerId].editable;
       let cardinality = Backdrop.leafletEditableItems[mapContainerId].cardinality;
       if (mapLayer.getLayers().length >= cardinality) {
-        alert('nope already full');// @todo hm...
+        alert(Backdrop.t('The item limit of the map has been reached'));
         return;
       }
       // Prevent adding the same marker multiple times.
