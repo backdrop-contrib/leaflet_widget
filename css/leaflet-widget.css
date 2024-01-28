@@ -63,7 +63,7 @@
   outline: 2px solid #1f79c9;
 }
 .leaflet-widget-geocode .credits {
-  font-size: .9em;
+  font-size: .75rem;
   text-align: right;
   margin: 0 0 .5em;
 }
