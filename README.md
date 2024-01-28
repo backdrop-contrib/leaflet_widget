@@ -8,13 +8,14 @@ The library ships with this module, no need for an extra download.
 
 *Leaflet Widget enables you to:*
 
+- Insert markers based on text search widget (Nominatim)
 - Create, edit and delete simple geometries: Point, Polyline, Polygon
 - Configure available geometry types per field
 - Supports single or multi-value Geofields (cardinality)
 - Uses base layers defined by the Leaflet module
 - API for additional base layers
 
-![Widget screenshot](https://raw.githubusercontent.com/backdrop-contrib/leaflet_widget/1.x-1.x/screenshots/widget.jpg)
+![Widget screenshot](https://raw.githubusercontent.com/backdrop-contrib/leaflet_widget/1.x-1.x/screenshots/widget.webp)
 
 ## Installation
 
@@ -59,6 +60,9 @@ This module bundles the [Leaflet.draw](https://github.com/Leaflet/Leaflet.draw)
 Javascript library by [Leaflet](http://leafletjs.com), which is
 [MIT](https://github.com/Leaflet/Leaflet.draw/blob/develop/MIT-LICENSE.md)
 licensed.
+
+The location search widget utilizes the [Nominatim API](https://nominatim.org/)
+ via JavaScript (AJAX) to geocode text input into coordinates for markers.
 
 ## License
 
