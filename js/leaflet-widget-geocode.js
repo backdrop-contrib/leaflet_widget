@@ -55,7 +55,7 @@
               })
             })
             .fail( function () {
-              $(mySelector + ' .message').html('Request failed');
+              $(mySelector + ' .message').html(Backdrop.t('Request failed'));
             })
             .always( function () {
               // Remove wait animation.
