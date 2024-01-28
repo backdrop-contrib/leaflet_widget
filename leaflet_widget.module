@@ -278,7 +278,7 @@ function _leaflet_widget_geocode_widget($id) {
   );
   $items['wrap']['search'] = array(
     '#type' => 'textfield',
-    '#title' => t('Search'),
+    '#title' => t('Location search'),
     '#title_display' => 'invisible',
     '#size' => 45,
     '#id' => $id . '-geoinput',

@@ -40,7 +40,8 @@
   border: 1px solid #ccc;
   margin: 0 0 -1px;
 }
-.leaflet-widget-geocode .message li:hover {
+.leaflet-widget-geocode .message li:hover,
+.leaflet-widget-geocode .message li:focus-within {
   background-color: #79f4011a;
 }
 .leaflet-widget-geocode .button-marker {
@@ -56,8 +57,9 @@
   cursor: pointer;
 }
 .leaflet-widget-geocode .button-marker[disabled] {
-  opacity: .8;
+  opacity: .5;
   filter: grayscale(100%);
+  cursor: auto;
 }
 .leaflet-widget-geocode .button-marker:focus-visible {
   outline: 2px solid #1f79c9;
