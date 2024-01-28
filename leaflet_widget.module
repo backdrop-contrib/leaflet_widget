@@ -32,6 +32,7 @@ function leaflet_widget_field_widget_info() {
           'polygon' => 'polygon',
           'rectangle' => 'rectangle',
         ),
+        'search_widget' => FALSE,
       ),
     ),
     'behaviors' => array(
@@ -144,6 +145,12 @@ function leaflet_widget_field_widget_settings_form($field, $instance) {
         '#description' => t('Which types of shapes are available in the draw toolbar.'),
         '#required' => TRUE,
       );
+      $form['map']['search_widget'] = array(
+        '#type' => 'checkbox',
+        '#title' => t('Add search widget'),
+        '#default_value' => !empty($settings['map']['search_widget']),
+        '#description' => t('Provde a location search widget above the map, to add markers based on text search results.'),
+      );
 
       break;
   }
@@ -169,7 +176,18 @@ function leaflet_widget_field_widget_form(&$form, &$form_state, $field, $instanc
 
   switch ($instance['widget']['type']) {
     case 'leaflet_widget_widget':
+      $module_path = backdrop_get_path('module', 'leaflet_widget');
       $id = 'leaflet-widget_' . backdrop_html_id(str_replace('_', '-', $instance['field_name']));
+      if (!empty($settings['map']['search_widget'])) {
+        // Make sure, this script gets loaded after the main widget.
+        $element['#attached']['js'][$module_path . '/js/leaflet-widget-geocode.js'] = array(
+          'weight' => 1,
+        );
+        $element['search_widget'] = array(
+          '#type' => 'markup',
+          '#markup' => _leaflet_widget_geocode_widget($id),
+        );
+      }
       $class = 'leaflet-widget';
       $style = 'height: ' . $settings['map']['height'] . 'px;';
       $input_id = $id . '-input';
@@ -229,17 +247,62 @@ function leaflet_widget_field_widget_form(&$form, &$form_state, $field, $instanc
       );
 
       $element['#attached']['library'][] = array('leaflet_widget', 'Leaflet.draw');
-      $element['#attached']['js'][] = backdrop_get_path('module', 'leaflet_widget') . '/js/leaflet-widget.js';
+      $element['#attached']['js'][] = $module_path . '/js/leaflet-widget.js';
       $element['#attached']['js'][] = array(
         'type' => 'setting',
         'data' => array('leaflet_geofield_widget' => array($id => $widget_settings)),
       );
-      $element['#attached']['css'][] = backdrop_get_path('module', 'leaflet_widget') . '/css/leaflet-widget.css';
+      $element['#attached']['css'][] = $module_path . '/css/leaflet-widget.css';
 
       break;
   }
 
   return $element;
+}
+
+/**
+ * Custom callback that returns markup for the geocoding widget.
+ *
+ * We do not need this in the form_state, only the markup.
+ *
+ * @param string $id
+ *   Map container HTML id.
+ * @return
+ *   Rendered markup.
+ */
+function _leaflet_widget_geocode_widget($id) {
+  $items = array();
+  $items['wrap'] = array(
+    '#type' => 'container',
+    '#attributes' => array(
+      'class' => array('leaflet-widget-geocode'),
+      'data-map-id' => $id,
+      'id' => $id . '-geocode',
+    ),
+  );
+  $items['wrap']['search'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Location search'),
+    '#title_display' => 'invisible',
+    '#size' => 45,
+    '#id' => $id . '-geoinput',
+    '#attributes' => array(
+      'placeholder' => t('Location name or address'),
+    ),
+  );
+  $items['wrap']['submit'] = array(
+    '#type' => 'markup',
+    '#markup' => '<button class="form-submit button-primary geocode-button" type="button">' . t('Search') . '</button>',
+  );
+  $items['wrap']['message'] = array(
+    '#type' => 'markup',
+    '#markup' => '<div class="message"></div>',
+  );
+  $items['wrap']['credits'] = array(
+    '#type' => 'markup',
+    '#markup' => '<div class="credits">Location search powered by <a href="https://nominatim.org/">Nominatim</a></div>',
+  );
+  return backdrop_render($items);
 }
 
 /**
