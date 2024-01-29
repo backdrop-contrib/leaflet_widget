@@ -267,7 +267,7 @@ function leaflet_widget_field_widget_form(&$form, &$form_state, $field, $instanc
  *
  * @param string $id
  *   Map container HTML id.
- * @return
+ * @return string
  *   Rendered markup.
  */
 function _leaflet_widget_geocode_widget($id) {
@@ -317,7 +317,7 @@ function _leaflet_widget_geocode_widget($id) {
  * @return array
  *   A geoJSON FeatureCollection.
  */
-function leaflet_widget_widget_prepare_items($items, $geom_type = 'wkt') {
+function leaflet_widget_widget_prepare_items(array $items, $geom_type = 'wkt') {
   $features = array();
   foreach ($items as $item) {
     if (isset($item['geom'])) {
@@ -434,7 +434,7 @@ function leaflet_widget_geojson_feature_collection($features) {
  * @return array|bool
  *   Returns a geoJSON feature or FALSE on failure.
  */
-function leaflet_widget_geojson_feature($geom, $properties = array(), $geom_type = 'wkt') {
+function leaflet_widget_geojson_feature($geom, array $properties = array(), $geom_type = 'wkt') {
   module_load_include('inc', 'geofield', 'libraries/geophp/geoPHP');
   $geometry = geoPHP::load($geom, $geom_type);
   // Avoid notice on error.
