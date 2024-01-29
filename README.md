@@ -20,7 +20,7 @@ The library ships with this module, no need for an extra download.
 ## Installation
 
 - Install this module using the official 
-  [Backdrop CMS instructions](https://backdropcms.org/guide/modules)
+  [Backdrop CMS instructions](https://docs.backdropcms.org/documentation/extend-with-modules)
 - Add or configure any Geofield to use the widget for input
 
 ## Requires
