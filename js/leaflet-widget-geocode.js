@@ -40,6 +40,11 @@
           }
           $.get('https://nominatim.openstreetmap.org/search', params)
             .done( function (data) {
+              // Sanity check: code 200, but wrong response data type.
+              if (!Array.isArray(data)) {
+                $(mySelector + ' .message').html(Backdrop.t('Unexpected response'));
+                return;
+              }
               if (!data.length) {
                 $(mySelector + ' .message').html(Backdrop.t('Your search yielded no results'));
                 return;
