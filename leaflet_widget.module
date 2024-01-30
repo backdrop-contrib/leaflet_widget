@@ -149,7 +149,7 @@ function leaflet_widget_field_widget_settings_form($field, $instance) {
         '#type' => 'checkbox',
         '#title' => t('Add search widget'),
         '#default_value' => !empty($settings['map']['search_widget']),
-        '#description' => t('Provde a location search widget above the map, to add markers based on text search results.'),
+        '#description' => t('Provde a location search widget above the map, to add markers based on text search results, if markers are enabled.'),
       );
 
       break;
@@ -178,7 +178,7 @@ function leaflet_widget_field_widget_form(&$form, &$form_state, $field, $instanc
     case 'leaflet_widget_widget':
       $module_path = backdrop_get_path('module', 'leaflet_widget');
       $id = 'leaflet-widget_' . backdrop_html_id(str_replace('_', '-', $instance['field_name']));
-      if (!empty($settings['map']['search_widget'])) {
+      if (!empty($settings['map']['search_widget']) && $settings['map']['feature_types']['marker']) {
         // Make sure, this script gets loaded after the main widget.
         $element['#attached']['js'][$module_path . '/js/leaflet-widget-geocode.js'] = array(
           'weight' => 1,
