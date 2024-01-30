@@ -8,7 +8,7 @@ The library ships with this module, no need for an extra download.
 
 *Leaflet Widget enables you to:*
 
-- Insert markers based on text search widget (Nominatim)
+- Insert markers based on text search widget (off by default)
 - Create, edit and delete simple geometries: Point, Polyline, Polygon
 - Configure available geometry types per field
 - Supports single or multi-value Geofields (cardinality)
@@ -36,9 +36,8 @@ Bugs and Feature requests should be reported in the
 
 ## Known Issues
 
-Values are stored as GeoJSON in Geofields, so some types (circle,
-circlemarker) are not available. They could get drawn, but they can not get
-saved.
+Because of the way Geofield stores values, some types (circle, circlemarker)
+are not available. They could get drawn, but they couldn't get saved.
 
 The API of this module has changed compared to Drupal. That was a necessary
 step to make it useful.
