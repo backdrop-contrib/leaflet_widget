@@ -105,7 +105,7 @@
     insertMarker: function (eventTarget, mapContainerId) {
       let mapLayer = Backdrop.leafletEditableItems[mapContainerId].editable;
       let cardinality = Backdrop.leafletEditableItems[mapContainerId].cardinality;
-      if (mapLayer.getLayers().length >= cardinality) {
+      if (cardinality > 0 && mapLayer.getLayers().length >= cardinality) {
         alert(Backdrop.t('The item limit of the map has been reached'));
         return;
       }
