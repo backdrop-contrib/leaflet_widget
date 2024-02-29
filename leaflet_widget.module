@@ -459,6 +459,7 @@ function leaflet_widget_leaflet_widget_base_layers() {
       'url_template' => 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
       'layer_options' => array(
         'attribution' => '<a href="https://www.openstreetmap.org/copyright" target="_blank">© OpenStreetMap </a> contributors',
+        'maxZoom' => 19,
       ),
     ),
   );
