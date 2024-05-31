@@ -203,6 +203,12 @@ function leaflet_widget_field_widget_form(&$form, &$form_state, $field, $instanc
       // Prepare existing field values to be rendered in widget.
       $geom_type = 'wkt';
 
+      // If coming back from node preview, the geom type has been converted to
+      // WKB. We can not rely on a GET param alone, so we let geophp autodetect
+      // the type. It's either WKT or WKB.
+      if (isset($_GET['node_tempstore_id'])) {
+        $geom_type = NULL;
+      }
       $collection = leaflet_widget_widget_prepare_items($items, $geom_type);
 
       $element['geom'] = array(
