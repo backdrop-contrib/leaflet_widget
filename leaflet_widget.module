@@ -63,9 +63,13 @@ function leaflet_widget_field_widget_settings_form($field, $instance) {
         '#default_value' => !empty($settings['map']['base_layer']) ? $settings['map']['base_layer'] : 'osm_mapnik_base',
         '#options' => leaflet_widget_base_layers_form_options(),
       );
+      $collapsed = FALSE;
+      if ($settings['map']['center']['lat'] || $settings['map']['center']['lng']) {
+        $collapsed = TRUE;
+      }
       $form['map']['center'] = array(
         '#type' => 'fieldset',
-        '#collapsed' => TRUE,
+        '#collapsed' => $collapsed,
         '#collapsible' => TRUE,
         '#title' => t('Default map center'),
       );
@@ -76,6 +80,40 @@ function leaflet_widget_field_widget_settings_form($field, $instance) {
           '#default_value' => isset($settings['map']['center']['geoip']) ? $settings['map']['center']['geoip'] : FALSE,
           '#description' => t('If checked, below values act as a fallback, if coordinates could not be determined.'),
         );
+      }
+      if ($country_code = config_get('system.date', 'default_country')) {
+        // Add a JavaScript based picker for center of the site's default
+        // country setting.
+        include_once BACKDROP_ROOT . '/core/includes/standard.inc';
+        $country_list = standard_country_list();
+        if (isset($country_list[$country_code])) {
+          $help = t('The button sets the coordinates based on site wide default country setting using the <a href="!url">Nominatim</a> AJAX API for geocoding.', array(
+            '!url' => 'https://nominatim.org/',
+          ));
+          $form['map']['center']['centerbutton'] = array(
+            '#type' => 'button',
+            '#value' => t('Set to center of !country', array(
+              '!country' => $country_list[$country_code],
+            )),
+            '#process' => array(),
+            '#limit_validation_errors' => array(),
+            '#id' => 'leaflet-geocode-center-button',
+            '#weight' => 1,
+            '#suffix' => '<div class="description">' . $help . '</div>',
+          );
+          $form['map']['#attached']['js'][] = array(
+            'type' => 'setting',
+            'data' => array(
+              'leaflet_widget' => array(
+                'countryCode' => $country_code,
+                'buttonLabel' => t('Set to center of !country', array(
+                  '!country' => $country_list[$country_code],
+                )),
+              ),
+            ),
+          );
+          $form['map']['#attached']['js'][] = backdrop_get_path('module', 'leaflet_widget') . '/js/leaflet-widget-defaultcenter.js';
+        }
       }
       $form['map']['center']['lat'] = array(
         '#type' => 'textfield',
