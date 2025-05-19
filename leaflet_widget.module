@@ -415,14 +415,13 @@ function leaflet_widget_library_info() {
 
   $libraries['Leaflet.draw'] = array(
     'title' => t('Leaflet Draw Library'),
-    'version' => '1.0.4',
+    'version' => '1.0.4+p001',
     'website' => 'https://github.com/Leaflet/Leaflet.draw',
+    // Patched version of Leaflet.draw for compatibility with newer Leaflet
+    // versions. Based on original src file from dist folder, compressed using:
+    // "uglifyjs -c -m -o leaflet.draw.js leaflet.draw-src.js".
     'js' => array(
-      $path . '/libraries/Leaflet.draw/dist/leaflet.draw.js' => array(
-        'type' => 'file',
-        'group' => JS_LIBRARY,
-      ),
-      $path . '/js/leaflet-draw-compat.js' => array(
+      $path . '/libraries/Leaflet.draw/patched/leaflet.draw.js' => array(
         'type' => 'file',
         'group' => JS_LIBRARY,
       ),
