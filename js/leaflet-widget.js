@@ -37,7 +37,7 @@
         // Load existing features.
         let existingPoints = $('#' + inputId).val();
         let data = JSON.parse(existingPoints);
-        let features = new L.geoJSON(data, {
+        let features = new L.GeoJSON(data, {
           onEachFeature: function (feature, layer) {
             // Add features one by one, so they are editable individually.
             let featureType = feature.geometry.type;
