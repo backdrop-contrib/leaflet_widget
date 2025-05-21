@@ -9,23 +9,21 @@
 
       $('.leaflet-widget').once('leaflet-widget').each( function (i, item) {
 
-        var id = $(item).attr('id'),
+        let id = $(item).attr('id'),
           inputId = id + '-input',
           itemSettings = settings.leaflet_geofield_widget[id],
           cardinality = itemSettings.widget.cardinality;
 
         // Suppress default topleft zoomControl, put it topright later.
         itemSettings.map_options.zoomControl = false;
-        L.Util.extend(itemSettings.map_options, {
-          layers: [L.tileLayer(itemSettings.layer[0], itemSettings.layer[1])]
-        });
-        var map = new L.Map(id, itemSettings.map_options);
 
-        L.control.zoom({
-          position: 'topright'
-        }).addTo(map);
+        const tileLayer = new L.TileLayer(itemSettings.layer[0], itemSettings.layer[1]);
+        itemSettings.map_options.layers = [tileLayer];
 
-        var editableItems = L.featureGroup().addTo(map);
+        let map = new L.Map(id, itemSettings.map_options);
+        new L.Control.Zoom({ position: 'topright' }).addTo(map);
+
+        let editableItems = new L.FeatureGroup().addTo(map);
 
         // Expose editable group to global space.
         if (typeof Backdrop.leafletEditableItems == 'undefined') {
@@ -37,12 +35,12 @@
         }
 
         // Load existing features.
-        var existingPoints = $('#' + inputId).val();
-        var data = JSON.parse(existingPoints);
-        var features = new L.geoJSON(data, {
+        let existingPoints = $('#' + inputId).val();
+        let data = JSON.parse(existingPoints);
+        let features = new L.geoJSON(data, {
           onEachFeature: function (feature, layer) {
             // Add features one by one, so they are editable individually.
-            var featureType = feature.geometry.type;
+            let featureType = feature.geometry.type;
             if (featureType === 'MultiPolygon' || featureType === 'MultiLineString') {
               geofieldWidget.addFeaturesSplit(feature, editableItems, featureType);
             }
@@ -60,7 +58,7 @@
         }
 
         // Create and add the draw toolbar based on field widget settings.
-        var drawControlSetup = geofieldWidget.assembleToolbar(itemSettings.widget.featureTypes);
+        let drawControlSetup = geofieldWidget.assembleToolbar(itemSettings.widget.featureTypes);
         drawControlSetup.edit.featureGroup = editableItems;
         map.addControl(new L.Control.Draw(drawControlSetup));
 
@@ -70,7 +68,7 @@
 
         // Capture Leaflet.draw events (constants) to update map and textarea.
         map.on(L.Draw.Event.CREATED, function (event) {
-          var layer = event.layer;
+          let layer = event.layer;
           editableItems.addLayer(layer);
 
           geofieldWidget.writeToField(editableItems, inputId);
@@ -138,20 +136,20 @@
   geofieldWidget.addFeaturesSplit = function (feature, editableItems, featureType) {
     for (let i = 0; i < feature.geometry.coordinates.length; i++) {
       // Geojson spec dictates lon/lat, but Leaflet uses lat/lon.
-      var coords = [];
+      let coords = [];
       if (featureType === 'MultiPolygon') {
         for (let j = 0; j < feature.geometry.coordinates[i][0].length; j++) {
-          var reversed = feature.geometry.coordinates[i][0][j].reverse();
+          let reversed = feature.geometry.coordinates[i][0][j].reverse();
           coords.push(reversed);
         }
       }
       else {
         for (let j = 0; j < feature.geometry.coordinates[i].length; j++) {
-          var reversed = feature.geometry.coordinates[i][j].reverse();
+          let reversed = feature.geometry.coordinates[i][j].reverse();
           coords.push(reversed);
         }
       }
-      var f;
+      let f;
       if (featureType === 'MultiPolygon') {
         f = new L.Polygon(coords);
       }
@@ -164,13 +162,13 @@
   }
 
   geofieldWidget.writeToField = function (editLayer, fieldId) {
-    var obj = editLayer.toGeoJSON();
-    var text = JSON.stringify(obj);
+    let obj = editLayer.toGeoJSON();
+    let text = JSON.stringify(obj);
     $('#' + fieldId).val(text);
   };
 
   geofieldWidget.checkFeatureLimit = function (editLayer, cardinality, itemId) {
-    var featureCount = editLayer.getLayers().length;
+    let featureCount = editLayer.getLayers().length;
     if (featureCount >= cardinality) {
       // Hackish css solution. Leaflet.draw can not handle limits.
       $('#' + itemId + ' .leaflet-draw-toolbar-top').addClass('draw-disabled');
@@ -184,9 +182,9 @@
     // We have to turn off circle and circlemarker, as we work with GeoJSON
     // and these types are not in the spec. Leaflet would convert them to
     // regular markers.
-    // Rectrangles turn into polygon, but that's no problem.
-    var allTypes = ['marker', 'polyline', 'polygon', 'rectangle'];
-    var toolbarSetup = {
+    // Rectangles turn into polygon, but that's no problem.
+    let allTypes = ['marker', 'polyline', 'polygon', 'rectangle'];
+    let toolbarSetup = {
       position: 'topleft',
       edit: {
         featureGroup: false,
@@ -200,8 +198,7 @@
       }
     };
 
-    for (var i = 0; i < allTypes.length; i++) {
-      var currentType = allTypes[i];
+    for (let currentType of allTypes) {
       if (availableTypes.hasOwnProperty(currentType) === false) {
         toolbarSetup.draw[currentType] = false;
       }

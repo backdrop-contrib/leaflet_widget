@@ -112,8 +112,8 @@
       // Prevent adding the same marker multiple times.
       eventTarget.setAttribute('disabled', 'disabled');
       let coords = JSON.parse(eventTarget.dataset.coords);
-      let latLng = L.latLng(coords.lat, coords.lon);
-      mapLayer.addLayer(L.marker(latLng));
+      let latLng = new L.LatLng(coords.lat, coords.lon);
+      mapLayer.addLayer(new L.Marker(latLng));
       // We ignore autoCenter setting here to prevent UX issues.
       let bounds = mapLayer.getBounds();
       mapLayer._map.fitBounds(bounds);
