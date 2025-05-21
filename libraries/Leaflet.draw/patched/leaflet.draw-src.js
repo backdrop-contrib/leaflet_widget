@@ -395,7 +395,7 @@ L.Draw.Feature = L.Handler.extend({
 		if (options && options.shapeOptions) {
 			options.shapeOptions = L.Util.extend({}, this.options.shapeOptions, options.shapeOptions);
 		}
-		L.setOptions(this, options);
+		L.Util.setOptions(this, options);
 		L.Draw.Feature.include(L.Evented.prototype);
 	},
 
@@ -458,7 +458,7 @@ L.Draw.Feature = L.Handler.extend({
 	// @method setOptions(object): void
 	// Sets new options to this handler
 	setOptions: function (options) {
-		L.setOptions(this, options);
+		L.Util.setOptions(this, options);
 	},
 
 	_fireCreatedEvent: function (layer) {
@@ -563,8 +563,8 @@ L.Draw.Polyline = L.Draw.Feature.extend({
 			// also do not want to trigger any click handlers of objects we are clicking on
 			// while drawing.
 			if (!this._mouseMarker) {
-				this._mouseMarker = L.marker(this._map.getCenter(), {
-					icon: L.divIcon({
+				this._mouseMarker = new L.Marker(this._map.getCenter(), {
+					icon: new L.DivIcon({
 						className: 'leaflet-mouse-marker',
 						iconAnchor: [20, 20],
 						iconSize: [40, 40]
@@ -761,7 +761,7 @@ L.Draw.Polyline = L.Draw.Feature.extend({
 	},
 
 	_startPoint: function (clientX, clientY) {
-		this._mouseDownOrigin = L.point(clientX, clientY);
+		this._mouseDownOrigin = new L.Point(clientX, clientY);
 	},
 
 	_onMouseUp: function (e) {
@@ -774,7 +774,7 @@ L.Draw.Polyline = L.Draw.Feature.extend({
 
 	_endPoint: function (clientX, clientY, e) {
 		if (this._mouseDownOrigin) {
-			var dragCheckDistance = L.point(clientX, clientY)
+			var dragCheckDistance = new L.Point(clientX, clientY)
 				.distanceTo(this._mouseDownOrigin);
 			var lastPtDistance = this._calculateFinishDistance(e.latlng);
 			if (this.options.maxPoints > 1 && this.options.maxPoints == this._markers.length + 1) {
@@ -1462,8 +1462,8 @@ L.Draw.Marker = L.Draw.Feature.extend({
 
 			// Same mouseMarker as in Draw.Polyline
 			if (!this._mouseMarker) {
-				this._mouseMarker = L.marker(this._map.getCenter(), {
-					icon: L.divIcon({
+				this._mouseMarker = new L.Marker(this._map.getCenter(), {
+					icon: new L.DivIcon({
 						className: 'leaflet-mouse-marker',
 						iconAnchor: [20, 20],
 						iconSize: [40, 40]
@@ -1697,7 +1697,7 @@ L.Edit.Marker = L.Handler.extend({
 	// @method initialize(): void
 	initialize: function (marker, options) {
 		this._marker = marker;
-		L.setOptions(this, options);
+		L.Util.setOptions(this, options);
 	},
 
 	// @method addHooks(): void
@@ -1887,7 +1887,7 @@ L.Edit.PolyVerticesEdit = L.Handler.extend({
 
 		this._latlngs = latlngs;
 
-		L.setOptions(this, options);
+		L.Util.setOptions(this, options);
 	},
 
 	// Compatibility method to normalize Poly* objects
@@ -2104,8 +2104,8 @@ L.Edit.PolyVerticesEdit = L.Handler.extend({
 		}
 
 		//refresh the bounds when draging
-		this._poly._bounds._southWest = L.latLng(Infinity, Infinity);
-		this._poly._bounds._northEast = L.latLng(-Infinity, -Infinity);
+		this._poly._bounds._southWest = new L.LatLng(Infinity, Infinity);
+		this._poly._bounds._northEast = new L.LatLng(-Infinity, -Infinity);
 		var latlngs = this._poly.getLatLngs();
 		this._poly._convertLatLngs(latlngs, true);
 		this._poly.redraw();
@@ -2603,7 +2603,7 @@ L.Edit.Rectangle = L.Edit.SimpleShape.extend({
 		var bounds;
 
 		// Update the shape based on the current position of this corner and the opposite point
-		this._shape.setBounds(L.latLngBounds(latlng, this._oppositeCorner));
+		this._shape.setBounds(new L.LatLngBounds(latlng, this._oppositeCorner));
 
 		// Reposition the move marker
 		bounds = this._shape.getBounds();
@@ -3038,7 +3038,7 @@ L.LatLngUtil = {
 	// @method cloneLatLng(LatLng): L.LatLng
 	// Clone the latLng and return a new LatLng object.
 	cloneLatLng: function (latlng) {
-		return L.latLng(latlng.lat, latlng.lng);
+		return new L.LatLng(latlng.lat, latlng.lng);
 	}
 };
 
@@ -3554,7 +3554,7 @@ L.Toolbar = L.Class.extend({
 	// @method initialize(options): void
 	// Toolbar constructor
 	initialize: function (options) {
-		L.setOptions(this, options);
+		L.Util.setOptions(this, options);
 
 		this._modes = {};
 		this._actionButtons = [];
@@ -4055,7 +4055,7 @@ L.DrawToolbar = L.Toolbar.extend({
 	// @method setOptions(): void
 	// Sets the options to the toolbar
 	setOptions: function (options) {
-		L.setOptions(this, options);
+		L.Util.setOptions(this, options);
 
 		for (var type in this._modes) {
 			if (this._modes.hasOwnProperty(type) && options.hasOwnProperty(type)) {
@@ -4277,7 +4277,7 @@ L.EditToolbar.Edit = L.Handler.extend({
 	initialize: function (map, options) {
 		L.Handler.prototype.initialize.call(this, map);
 
-		L.setOptions(this, options);
+		L.Util.setOptions(this, options);
 
 		// Store the selectable layer group for ease of access
 		this._featureGroup = options.featureGroup;
