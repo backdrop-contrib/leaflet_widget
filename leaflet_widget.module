@@ -459,7 +459,7 @@ function leaflet_widget_library_info() {
 
   $libraries['Leaflet.draw'] = array(
     'title' => t('Leaflet Draw Library'),
-    'version' => '1.0.4+p001',
+    'version' => '1.0.4+p002',
     'website' => 'https://github.com/Leaflet/Leaflet.draw',
     // Patched version of Leaflet.draw for compatibility with newer Leaflet
     // versions. Based on original src file from dist folder, compressed using:
