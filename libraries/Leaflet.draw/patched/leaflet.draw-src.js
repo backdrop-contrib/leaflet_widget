@@ -8,7 +8,7 @@
 (function (window, document, undefined) {/**
  * Leaflet.draw assumes that you have already included the Leaflet library.
  */
-L.drawVersion = "1.0.4+p002";
+L.drawVersion = "1.0.4+p003";
 /**
  * @class L.Draw
  * @aka Draw
@@ -1723,13 +1723,13 @@ L.Edit.Marker = L.Handler.extend({
 		// This is quite naughty, but I don't see another way of doing it. (short of setting a new icon)
 		icon.style.display = 'none';
 
-		if (L.DomUtil.hasClass(icon, 'leaflet-edit-marker-selected')) {
-			L.DomUtil.removeClass(icon, 'leaflet-edit-marker-selected');
+		if (icon.classList.contains('leaflet-edit-marker-selected')) {
+			icon.classList.remove('leaflet-edit-marker-selected');
 			// Offset as the border will make the icon move.
 			this._offsetMarker(icon, -4);
 
 		} else {
-			L.DomUtil.addClass(icon, 'leaflet-edit-marker-selected');
+			icon.classList.add('leaflet-edit-marker-selected');
 			// Offset as the border will make the icon move.
 			this._offsetMarker(icon, 4);
 		}
@@ -1900,11 +1900,11 @@ L.Edit.PolyVerticesEdit = L.Handler.extend({
 			if (poly.options.editing && poly.options.editing.className) {
 				if (poly.options.original.className) {
 					poly.options.original.className.split(' ').forEach(function (className) {
-						L.DomUtil.removeClass(path, className);
+						path.classList.remove(className);
 					});
 				}
 				poly.options.editing.className.split(' ').forEach(function (className) {
-					L.DomUtil.addClass(path, className);
+					path.classList.add(className);
 				});
 			}
 		}
@@ -1931,11 +1931,11 @@ L.Edit.PolyVerticesEdit = L.Handler.extend({
 		if (path) {
 			if (poly.options.editing && poly.options.editing.className) {
 				poly.options.editing.className.split(' ').forEach(function (className) {
-					L.DomUtil.removeClass(path, className);
+					path.classList.remove(className);
 				});
 				if (poly.options.original.className) {
 					poly.options.original.className.split(' ').forEach(function (className) {
-						L.DomUtil.addClass(path, className);
+						path.classList.add(className);
 					});
 				}
 			}
@@ -3301,8 +3301,8 @@ L.Control.Draw = L.Control.extend({
 				if (toolbarContainer) {
 					// Add class to the first toolbar to remove the margin
 					if (!addedTopClass) {
-						if (!L.DomUtil.hasClass(toolbarContainer, topClassName)) {
-							L.DomUtil.addClass(toolbarContainer.childNodes[0], topClassName);
+						if (!toolbarContainer.classList.contains(topClassName)) {
+							toolbarContainer.childNodes[0].classList.add(topClassName);
 						}
 						addedTopClass = true;
 					}
@@ -3596,7 +3596,7 @@ L.Toolbar = L.Class.extend({
 		// Cache new active feature
 		this._activeMode = this._modes[e.handler];
 
-		L.DomUtil.addClass(this._activeMode.button, 'leaflet-draw-toolbar-button-enabled');
+		this._activeMode.button.classList.add('leaflet-draw-toolbar-button-enabled');
 
 		this._showActionsToolbar();
 
@@ -3606,7 +3606,7 @@ L.Toolbar = L.Class.extend({
 	_handlerDeactivated: function () {
 		this._hideActionsToolbar();
 
-		L.DomUtil.removeClass(this._activeMode.button, 'leaflet-draw-toolbar-button-enabled');
+		this._activeMode.button.classList.remove('leaflet-draw-toolbar-button-enabled');
 
 		this._activeMode = null;
 
@@ -3664,13 +3664,13 @@ L.Toolbar = L.Class.extend({
 		this._actionsContainer.style.top = toolbarPosition + 'px';
 
 		if (buttonIndex === 0) {
-			L.DomUtil.addClass(this._toolbarContainer, 'leaflet-draw-toolbar-notop');
-			L.DomUtil.addClass(this._actionsContainer, 'leaflet-draw-actions-top');
+			this._toolbarContainer.classList.add('leaflet-draw-toolbar-notop');
+			this._actionsContainer.classList.add('leaflet-draw-actions-top');
 		}
 
 		if (buttonIndex === lastButtonIndex) {
-			L.DomUtil.addClass(this._toolbarContainer, 'leaflet-draw-toolbar-nobottom');
-			L.DomUtil.addClass(this._actionsContainer, 'leaflet-draw-actions-bottom');
+			this._toolbarContainer.classList.add('leaflet-draw-toolbar-nobottom');
+			this._actionsContainer.classList.add('leaflet-draw-actions-bottom');
 		}
 
 		this._actionsContainer.style.display = 'block';
@@ -3680,10 +3680,10 @@ L.Toolbar = L.Class.extend({
 	_hideActionsToolbar: function () {
 		this._actionsContainer.style.display = 'none';
 
-		L.DomUtil.removeClass(this._toolbarContainer, 'leaflet-draw-toolbar-notop');
-		L.DomUtil.removeClass(this._toolbarContainer, 'leaflet-draw-toolbar-nobottom');
-		L.DomUtil.removeClass(this._actionsContainer, 'leaflet-draw-actions-top');
-		L.DomUtil.removeClass(this._actionsContainer, 'leaflet-draw-actions-bottom');
+		this._toolbarContainer.classList.remove('leaflet-draw-toolbar-notop');
+		this._toolbarContainer.classList.remove('leaflet-draw-toolbar-nobottom');
+		this._actionsContainer.classList.remove('leaflet-draw-actions-top');
+		this._actionsContainer.classList.remove('leaflet-draw-actions-bottom');
 		this._map.fire(L.Draw.Event.TOOLBARCLOSED);
 	}
 });
@@ -3744,11 +3744,11 @@ L.Draw.Tooltip = L.Class.extend({
 
 		// update the vertical position (only if changed)
 		if (labelText.subtext.length === 0 && !this._singleLineLabel) {
-			L.DomUtil.addClass(this._container, 'leaflet-draw-tooltip-single');
+			this._container.classList.add('leaflet-draw-tooltip-single');
 			this._singleLineLabel = true;
 		}
 		else if (labelText.subtext.length > 0 && this._singleLineLabel) {
-			L.DomUtil.removeClass(this._container, 'leaflet-draw-tooltip-single');
+			this._container.classList.remove('leaflet-draw-tooltip-single');
 			this._singleLineLabel = false;
 		}
 
@@ -3788,7 +3788,7 @@ L.Draw.Tooltip = L.Class.extend({
 	// Applies error class to tooltip
 	showAsError: function () {
 		if (this._container) {
-			L.DomUtil.addClass(this._container, 'leaflet-error-draw-tooltip');
+			this._container.classList.add('leaflet-error-draw-tooltip');
 		}
 		return this;
 	},
@@ -3797,7 +3797,7 @@ L.Draw.Tooltip = L.Class.extend({
 	// Removes the error class from the tooltip
 	removeError: function () {
 		if (this._container) {
-			L.DomUtil.removeClass(this._container, 'leaflet-error-draw-tooltip');
+			this._container.classList.remove('leaflet-error-draw-tooltip');
 		}
 		return this;
 	},
@@ -4087,9 +4087,9 @@ L.EditToolbar = L.Toolbar.extend({
 			button = this._modes[L.EditToolbar.Edit.TYPE].button;
 
 			if (hasLayers) {
-				L.DomUtil.removeClass(button, 'leaflet-disabled');
+				button.classList.remove('leaflet-disabled');
 			} else {
-				L.DomUtil.addClass(button, 'leaflet-disabled');
+				button.classList.add('leaflet-disabled');
 			}
 
 			button.setAttribute(
@@ -4104,9 +4104,9 @@ L.EditToolbar = L.Toolbar.extend({
 			button = this._modes[L.EditToolbar.Delete.TYPE].button;
 
 			if (hasLayers) {
-				L.DomUtil.removeClass(button, 'leaflet-disabled');
+				button.classList.remove('leaflet-disabled');
 			} else {
-				L.DomUtil.addClass(button, 'leaflet-disabled');
+				button.classList.add('leaflet-disabled');
 			}
 
 			button.setAttribute(
