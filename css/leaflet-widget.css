@@ -1,6 +1,9 @@
 /**
  * Widget custom style.
  */
+.leaflet-widget .leaflet-control-container .leaflet-top.leaflet-left {
+  z-index: 999;
+}
 .leaflet-draw-toolbar.draw-disabled {
   position: relative;
 }
