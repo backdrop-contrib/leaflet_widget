@@ -288,6 +288,7 @@ function leaflet_widget_field_widget_form(&$form, &$form_state, $field, $instanc
       );
 
       $element['#attached']['library'][] = array('leaflet_widget', 'Leaflet.draw');
+      $element['#attached']['js'][] = $module_path . '/js/leaflet-widget-l10n.js';
       $element['#attached']['js'][] = $module_path . '/js/leaflet-widget.js';
       $element['#attached']['js'][] = array(
         'type' => 'setting',
@@ -297,8 +298,51 @@ function leaflet_widget_field_widget_form(&$form, &$form_state, $field, $instanc
 
       break;
   }
-
+  _leaflet_widget_trigger_translations();
   return $element;
+}
+
+/**
+ * Helper function to populate translatable strings.
+ */
+function _leaflet_widget_trigger_translations() {
+  // Apparently this does nothing, but it triggers t(). It can be cumbersome to
+  // get translations into locale tables using JS function Backdrop.t() alone.
+  // @see leaflet-widget-l10n.js
+  $strings = array(
+    t('Cancel drawing'),
+    t('Cancel'),
+    t('Finish drawing'),
+    t('Finish'),
+    t('Delete last point drawn'),
+    t('Delete last point'),
+    t('Draw a polyline'),
+    t('Draw a polygon'),
+    t('Draw a rectangle'),
+    t('Draw a marker'),
+    t('Click map to place marker.'),
+    t('Click to start drawing shape.'),
+    t('Click to continue drawing shape.'),
+    t('Click first point to close this shape.'),
+    t('Error: shape edges cannot cross!'),
+    t('Click to start drawing line.'),
+    t('Click to continue drawing line.'),
+    t('Click last point to finish line.'),
+    t('Click and drag to draw rectangle.'),
+    t('Save changes'),
+    t('Save'),
+    t('Cancel editing, discards all changes'),
+    t('Cancel'),
+    t('Clear all layers'),
+    t('Clear all'),
+    t('Edit layers'),
+    t('No layers to edit'),
+    t('Delete layers'),
+    t('No layers to delete'),
+    t('Drag handles or markers to edit features.'),
+    t('Click cancel to undo changes.'),
+    t('Click on a feature to remove.'),
+  );
 }
 
 /**
