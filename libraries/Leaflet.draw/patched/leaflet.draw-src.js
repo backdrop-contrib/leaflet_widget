@@ -8,7 +8,7 @@
 (function (window, document, undefined) {/**
  * Leaflet.draw assumes that you have already included the Leaflet library.
  */
-L.drawVersion = "1.0.4+p001";
+L.drawVersion = "1.0.4+p002";
 /**
  * @class L.Draw
  * @aka Draw
@@ -978,13 +978,7 @@ L.Draw.Polyline = L.Draw.Feature.extend({
 			this._measurementRunningTotal = 0;
 		} else {
 			previousMarkerIndex = markersLength - (added ? 2 : 1);
-
-			// Calculate the distance based on the version
-			if (L.GeometryUtil.isVersion07x()) {
-				distance = latlng.distanceTo(this._markers[previousMarkerIndex].getLatLng()) * (this.options.factor || 1);
-			} else {
-				distance = this._map.distance(latlng, this._markers[previousMarkerIndex].getLatLng()) * (this.options.factor || 1);
-			}
+			distance = this._map.distance(latlng, this._markers[previousMarkerIndex].getLatLng()) * (this.options.factor || 1);
 
 			this._measurementRunningTotal += distance * (added ? 1 : -1);
 		}
@@ -995,12 +989,7 @@ L.Draw.Polyline = L.Draw.Feature.extend({
 			previousLatLng = this._markers[this._markers.length - 1].getLatLng(),
 			distance;
 
-		// Calculate the distance from the last fixed point to the mouse position based on the version
-		if (L.GeometryUtil.isVersion07x()) {
-			distance = previousLatLng && currentLatLng && currentLatLng.distanceTo ? this._measurementRunningTotal + currentLatLng.distanceTo(previousLatLng) * (this.options.factor || 1) : this._measurementRunningTotal || 0;
-		} else {
-			distance = previousLatLng && currentLatLng ? this._measurementRunningTotal + this._map.distance(currentLatLng, previousLatLng) * (this.options.factor || 1) : this._measurementRunningTotal || 0;
-		}
+		distance = previousLatLng && currentLatLng ? this._measurementRunningTotal + this._map.distance(currentLatLng, previousLatLng) * (this.options.factor || 1) : this._measurementRunningTotal || 0;
 
 		return L.GeometryUtil.readableDistance(distance, this.options.metric, this.options.feet, this.options.nautic, this.options.precision);
 	},
@@ -1549,7 +1538,7 @@ L.Draw.Marker = L.Draw.Feature.extend({
 	},
 
 	_fireCreatedEvent: function () {
-		var marker = new L.Marker.Touch(this._marker.getLatLng(), {icon: this.options.icon});
+		var marker = new L.Marker(this._marker.getLatLng(), {icon: this.options.icon});
 		L.Draw.Feature.prototype._fireCreatedEvent.call(this, marker);
 	}
 });
@@ -1639,12 +1628,7 @@ L.Draw.Circle = L.Draw.SimpleShape.extend({
 	},
 
 	_drawShape: function (latlng) {
-		// Calculate the distance based on the version
-		if (L.GeometryUtil.isVersion07x()) {
-			var distance = this._startLatLng.distanceTo(latlng);
-		} else {
-			var distance = this._map.distance(this._startLatLng, latlng);
-		}
+		var distance = this._map.distance(this._startLatLng, latlng);
 
 		if (!this._shape) {
 			this._shape = new L.Circle(this._startLatLng, distance, this.options.shapeOptions);
@@ -2007,7 +1991,7 @@ L.Edit.PolyVerticesEdit = L.Handler.extend({
 
 	_createMarker: function (latlng, index) {
 		// Extending L.Marker in TouchEvents.js to include touch.
-		var marker = new L.Marker.Touch(latlng, {
+		var marker = new L.Marker(latlng, {
 			draggable: true,
 			icon: this.options.icon,
 		});
@@ -2399,7 +2383,7 @@ L.Edit.SimpleShape = L.Handler.extend({
 
 	_createMarker: function (latlng, icon) {
 		// Extending L.Marker in TouchEvents.js to include touch.
-		var marker = new L.Marker.Touch(latlng, {
+		var marker = new L.Marker(latlng, {
 			draggable: true,
 			icon: icon,
 			zIndexOffset: 10
@@ -2731,12 +2715,7 @@ L.Edit.Circle = L.Edit.CircleMarker.extend({
 	_resize: function (latlng) {
 		var moveLatLng = this._moveMarker.getLatLng();
 
-		// Calculate the radius based on the version
-		if (L.GeometryUtil.isVersion07x()) {
-			radius = moveLatLng.distanceTo(latlng);
-		} else {
-			radius = this._map.distance(moveLatLng, latlng);
-		}
+		radius = this._map.distance(moveLatLng, latlng);
 		this._shape.setRadius(radius);
 
 		if (this._map.editTooltip) {
@@ -2896,122 +2875,11 @@ L.Map.TouchExtend = L.Handler.extend({
 
 		var type = 'touchmove';
 		this._touchEvent(e, type);
-	},
-
-	_detectIE: function () {
-		var ua = window.navigator.userAgent;
-
-		var msie = ua.indexOf('MSIE ');
-		if (msie > 0) {
-			// IE 10 or older => return version number
-			return parseInt(ua.substring(msie + 5, ua.indexOf('.', msie)), 10);
-		}
-
-		var trident = ua.indexOf('Trident/');
-		if (trident > 0) {
-			// IE 11 => return version number
-			var rv = ua.indexOf('rv:');
-			return parseInt(ua.substring(rv + 3, ua.indexOf('.', rv)), 10);
-		}
-
-		var edge = ua.indexOf('Edge/');
-		if (edge > 0) {
-			// IE 12 => return version number
-			return parseInt(ua.substring(edge + 5, ua.indexOf('.', edge)), 10);
-		}
-
-		// other browser
-		return false;
 	}
+
 });
 
 L.Map.addInitHook('addHandler', 'touchExtend', L.Map.TouchExtend);
-
-
-/**
- * @class L.Marker.Touch
- * @aka Marker.Touch
- *
- * This isn't full Touch support. This is just to get markers to also support dom touch events after creation
- * #TODO: find a better way of getting markers to support touch.
- */
-L.Marker.Touch = L.Marker.extend({
-
-	_initInteraction: function () {
-		if (!this.addInteractiveTarget) {
-			// 0.7.x support
-			return this._initInteractionLegacy();
-		}
-		// TODO this may need be updated to re-add touch events for 1.0+
-		return L.Marker.prototype._initInteraction.apply(this);
-	},
-
-	// This is an exact copy of https://github.com/Leaflet/Leaflet/blob/v0.7/src/layer/marker/Marker.js
-	// with the addition of the touch events
-	_initInteractionLegacy: function () {
-
-		if (!this.options.clickable) {
-			return;
-		}
-
-		// TODO refactor into something shared with Map/Path/etc. to DRY it up
-
-		var icon = this._icon,
-			events = ['dblclick',
-				'mousedown',
-				'mouseover',
-				'mouseout',
-				'contextmenu',
-				'touchstart',
-				'touchend',
-				'touchmove',
-				'touchcancel'];
-
-		L.DomUtil.addClass(icon, 'leaflet-clickable');
-		L.DomEvent.on(icon, 'click', this._onMouseClick, this);
-		L.DomEvent.on(icon, 'keypress', this._onKeyPress, this);
-
-		for (var i = 0; i < events.length; i++) {
-			L.DomEvent.on(icon, events[i], this._fireMouseEvent, this);
-		}
-
-		if (L.Handler.MarkerDrag) {
-			this.dragging = new L.Handler.MarkerDrag(this);
-
-			if (this.options.draggable) {
-				this.dragging.enable();
-			}
-		}
-	},
-
-	_detectIE: function () {
-		var ua = window.navigator.userAgent;
-
-		var msie = ua.indexOf('MSIE ');
-		if (msie > 0) {
-			// IE 10 or older => return version number
-			return parseInt(ua.substring(msie + 5, ua.indexOf('.', msie)), 10);
-		}
-
-		var trident = ua.indexOf('Trident/');
-		if (trident > 0) {
-			// IE 11 => return version number
-			var rv = ua.indexOf('rv:');
-			return parseInt(ua.substring(rv + 3, ua.indexOf('.', rv)), 10);
-		}
-
-		var edge = ua.indexOf('Edge/');
-		if (edge > 0) {
-			// IE 12 => return version number
-			return parseInt(ua.substring(edge + 5, ua.indexOf('.', edge)), 10);
-		}
-
-		// other browser
-		return false;
-	}
-});
-
-
 
 /**
  * @class L.LatLngUtil
@@ -3197,14 +3065,6 @@ L.LatLngUtil = {
 					break;
 			}
 			return distanceStr;
-		},
-
-		// @method isVersion07x(): boolean
-		// Returns true if the Leaflet version is 0.7.x, false otherwise.
-		isVersion07x: function () {
-			var version = L.version.split('.');
-			//If Version is == 0.7.*
-			return parseInt(version[0], 10) === 0 && parseInt(version[1], 10) === 7;
 		},
 	});
 
@@ -3398,9 +3258,6 @@ L.Control.Draw = L.Control.extend({
 	// @method initialize(): void
 	// Initializes draw control, toolbars from the options
 	initialize: function (options) {
-		if (L.version < '0.7') {
-			throw new Error('Leaflet.draw 0.2.3+ requires Leaflet 0.7.0+. Download latest from https://github.com/Leaflet/Leaflet/');
-		}
 
 		L.Control.prototype.initialize.call(this, options);
 
