@@ -1,7 +1,8 @@
 /**
  * Widget custom style.
  */
-.leaflet-widget .leaflet-control-container .leaflet-top.leaflet-left {
+.leaflet-widget .leaflet-control-container .leaflet-top,
+.leaflet-widget .leaflet-control-container .leaflet-bottom {
   z-index: 999;
 }
 .leaflet-draw-toolbar.draw-disabled {
