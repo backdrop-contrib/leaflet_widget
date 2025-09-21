@@ -8,7 +8,7 @@
 (function (window, document, undefined) {/**
  * Leaflet.draw assumes that you have already included the Leaflet library.
  */
-L.drawVersion = "1.0.4+p003";
+L.drawVersion = "1.0.4+p004";
 /**
  * @class L.Draw
  * @aka Draw
@@ -1628,10 +1628,11 @@ L.Draw.Circle = L.Draw.SimpleShape.extend({
 	},
 
 	_drawShape: function (latlng) {
-		var distance = this._map.distance(this._startLatLng, latlng);
+		const distance = this._map.distance(this._startLatLng, latlng);
 
 		if (!this._shape) {
-			this._shape = new L.Circle(this._startLatLng, distance, this.options.shapeOptions);
+			this.options.shapeOptions.radius = distance;
+			this._shape = new L.Circle(this._startLatLng, this.options.shapeOptions);
 			this._map.addLayer(this._shape);
 		} else {
 			this._shape.setRadius(distance);
@@ -1639,7 +1640,8 @@ L.Draw.Circle = L.Draw.SimpleShape.extend({
 	},
 
 	_fireCreatedEvent: function () {
-		var circle = new L.Circle(this._startLatLng, this._shape.getRadius(), this.options.shapeOptions);
+		this.options.shapeOptions.radius = this._shape.getRadius();
+		const circle = new L.Circle(this._startLatLng, this.options.shapeOptions);
 		L.Draw.SimpleShape.prototype._fireCreatedEvent.call(this, circle);
 	},
 
@@ -2729,6 +2731,27 @@ L.Edit.Circle = L.Edit.CircleMarker.extend({
 		this._shape.setRadius(radius);
 
 		this._map.fire(L.Draw.Event.EDITRESIZE, {layer: this._shape});
+	},
+	// @method removeHooks(): void
+	// Remove listener hooks from this handler
+	removeHooks: function () {
+		const shape = this._shape;
+		// Prevent setStyle() from overriding resized radius with original
+		// value (before edit). Necessary as of Leaflet v2.
+		delete shape.options.original.radius;
+		shape.setStyle(shape.options.original);
+
+		if (shape._map) {
+			this._unbindMarker(this._moveMarker);
+			// Circles have only one resize marker.
+			this._unbindMarker(this._resizeMarkers[0]);
+			this._resizeMarkers = null;
+
+			this._map.removeLayer(this._markerGroup);
+			delete this._markerGroup;
+		}
+
+		this._map = null;
 	}
 });
 
