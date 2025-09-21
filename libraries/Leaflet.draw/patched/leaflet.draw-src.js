@@ -8,7 +8,7 @@
 (function (window, document, undefined) {/**
  * Leaflet.draw assumes that you have already included the Leaflet library.
  */
-L.drawVersion = "1.0.4+p004";
+L.drawVersion = "1.0.4+p003";
 /**
  * @class L.Draw
  * @aka Draw
@@ -396,15 +396,7 @@ L.Draw.Feature = L.Handler.extend({
 			options.shapeOptions = L.Util.extend({}, this.options.shapeOptions, options.shapeOptions);
 		}
 		L.Util.setOptions(this, options);
-		// Do not use L.Draw.Feature.include() here, as this breaks
-		// extending classes.
-		const names = Object.getOwnPropertyNames(L.Evented.prototype);
-		for (const name of names) {
-		  if (name === 'constructor') {
-		    continue;
-		  }
-		  L.Draw.Feature.prototype[name] = L.Evented.prototype[name];
-		}
+		L.Draw.Feature.include(L.Evented.prototype);
 	},
 
 	// @method enable(): void
@@ -3424,15 +3416,7 @@ L.Toolbar = L.Class.extend({
 		this._modes = {};
 		this._actionButtons = [];
 		this._activeMode = null;
-		// Do not use L.Toolbar.include() here, as this breaks extending
-		// classes.
-		const names = Object.getOwnPropertyNames(L.Evented.prototype);
-		for (const name of names) {
-		  if (name === 'constructor') {
-		    continue;
-		  }
-		  L.Toolbar.prototype[name] = L.Evented.prototype[name];
-		}
+		L.Toolbar.include(L.Evented.prototype);
 	},
 
 	// @method enabled(): boolean
