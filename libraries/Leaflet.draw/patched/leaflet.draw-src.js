@@ -8,7 +8,7 @@
 (function (window, document, undefined) {/**
  * Leaflet.draw assumes that you have already included the Leaflet library.
  */
-L.drawVersion = "1.0.4+p004";
+L.drawVersion = "1.0.4+p005";
 /**
  * @class L.Draw
  * @aka Draw
@@ -585,7 +585,6 @@ L.Draw.Polyline = L.Draw.Feature.extend({
 				.on('mouseup', this._onMouseUp, this) // Necessary for 0.7 compatibility
 				.on('mousemove', this._onMouseMove, this)
 				.on('zoomlevelschange', this._onZoomEnd, this)
-				.on('touchstart', this._onTouch, this)
 				.on('zoomend', this._onZoomEnd, this);
 
 		}
@@ -624,8 +623,6 @@ L.Draw.Polyline = L.Draw.Feature.extend({
 			.off('mousemove', this._onMouseMove, this)
 			.off('zoomlevelschange', this._onZoomEnd, this)
 			.off('zoomend', this._onZoomEnd, this)
-			.off('touchstart', this._onTouch, this)
-			.off('click', this._onTouch, this);
 	},
 
 	// @method deleteLastVertex(): void
@@ -792,6 +789,8 @@ L.Draw.Polyline = L.Draw.Feature.extend({
 
 	// ontouch prevented by clickHandled flag because some browsers fire both click/touch events,
 	// causing unwanted behavior
+	// Obsolete and unused, since mouseup fires already.
+	// @todo remove L.Draw.Polyline._onTouch() with next major version.
 	_onTouch: function (e) {
 		var originalEvent = e.originalEvent;
 		var clientX;
